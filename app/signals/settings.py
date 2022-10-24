@@ -68,7 +68,8 @@ SIGNAL_APPS: list[str] = [
     'signals.apps.search',
     'signals.apps.dataset',
     'signals.apps.questionnaires',
-    'signals.apps.my_signals'
+    'signals.apps.my_signals',
+    'signals.apps.zgw',
 ]
 
 INSTALLED_APPS: list[str] = [
@@ -381,6 +382,16 @@ SIGMAX_SEND_FAIL_TIMEOUT_MINUTES: str | int = os.getenv('SIGMAX_SEND_FAIL_TIMEOU
 
 # Child settings
 SIGNAL_MAX_NUMBER_OF_CHILDREN: int = 10
+
+# ZGW settings
+ZGW_API_URL: str = os.getenv('ZGW_API_URL', '')
+ZGW_AUTH_TOKEN: str = os.getenv('ZGW_AUTH_TOKEN', '')
+ZGW_BRONORGANISATIE: str = os.getenv('ZGW_BRONORGANISATIE', '')
+ZGW_VERANTWOORDELIJKE_ORGANISATIE: str = os.getenv('ZGW_VERANTWOORDELIJKE_ORGANISATIE', '')
+ZGW_ZAAKTYPE: str = os.getenv('ZGW_ZAAKTYPE', '')
+ZGW_STATUS_RECEIVED: str = os.getenv('ZGW_STATUS_RECEIVED', '')
+ZGW_STATUS_DONE: str = os.getenv('ZGW_STATUS_DONE', '')
+ZGW_TIMEOUT: str = os.getenv('ZGW_TIMEOUT', 10)
 
 # The URL of the Frontend
 FRONTEND_URL: str | None = os.getenv('FRONTEND_URL', None)
