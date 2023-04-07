@@ -5,6 +5,7 @@ import logging
 from django.db import connection
 from django.db.models import Q
 from django.utils import timezone
+from psycopg2.errors import LockNotAvailable
 
 from signals.apps.services.domain.auto_create_children.service import AutoCreateChildrenService
 from signals.apps.services.domain.delete_signals import SignalDeletionService
@@ -23,7 +24,7 @@ log = logging.getLogger(__name__)
 dsl_service = SignalDslService()
 
 
-@app.task
+@app.task(autoretry_for=(LockNotAvailable, ), max_retries=5, default_retry_delay=30)
 def apply_routing(signal_id):
     signal = Signal.objects.get(pk=signal_id)
     dsl_service.process_routing_rules(signal)
