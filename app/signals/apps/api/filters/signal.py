@@ -60,6 +60,7 @@ class SignalFilterSet(FilterSet):
         field_name='category_assignment__category__parent__slug',
     )
     note_keyword = filters.CharFilter(method='note_keyword_filter')
+    extra_properties_keyword = filters.CharFilter(method='extra_properties_keyword_filter')
     priority = filters.MultipleChoiceFilter(field_name='priority__priority', choices=Priority.PRIORITY_CHOICES)
     source = filters.MultipleChoiceFilter(choices=source_choices)
     stadsdeel = filters.MultipleChoiceFilter(field_name='location__stadsdeel', choices=stadsdelen_choices)
@@ -232,6 +233,9 @@ class SignalFilterSet(FilterSet):
 
     def note_keyword_filter(self, queryset, name, value):
         return queryset.filter(notes__text__icontains=value).distinct()
+
+    def extra_properties_keyword_filter(self, queryset, name, value):
+        return queryset.filter(extra_properties__contains=[{'answer': {'label': value}}]).distinct()
 
     def assigned_user_email_filter(self, queryset, name, value):
         if value == 'null':
