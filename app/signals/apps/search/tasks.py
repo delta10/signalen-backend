@@ -27,14 +27,44 @@ def save_to_elastic(signal_id):
 
 
 @app.task
-def rebuild_index():
-    log.info('rebuild_index - start')
+def index_status_message(status_message_id: int):
+    """Celery task that indexes a status message.
+
+    Parameters
+    ----------
+    status_message_id : int
+        The database id of the status message to be indexed.
+    """
+    try:
+        status_message = StatusMessageModel.objects.get(id=status_message_id)
+        document = transform(status_message)
+        document.save()
+    except ObjectDoesNotExist:
+        log.error(f'Could not find StatusMessage with id {status_message_id}!')
+
+
+@app.task
+def clear_index():
+    log.info('clear_index - start')
 
     if not SignalDocument.ping():
         raise Exception('Elastic cluster is unreachable')
 
-    SignalDocument.index_documents()
-    log.info('rebuild_index - done!')
+    SignalDocument.clear_index()
+
+    log.info('clear_index - done!')
+
+
+@app.task
+def init_index():
+    log.info('init_index - start')
+
+    if not SignalDocument.ping():
+        raise Exception('Elastic cluster is unreachable')
+
+    SignalDocument.init()
+
+    log.info('init_index - done!')
 
 
 @app.task
