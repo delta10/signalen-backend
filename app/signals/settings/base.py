@@ -375,7 +375,6 @@ SEARCH = {
         'INDEX': os.getenv('ELASTICSEARCH_INDEX', 'signals'),
         'STATUS_MESSAGE_INDEX': os.getenv('ELASTICSEARCH_STATUS_MESSAGE_INDEX', 'status_messages'),
     },
-    'TIMEOUT': os.getenv('ELASTICSEARCH_TIMEOUT', '10')
 }
 
 API_DETERMINE_STADSDEEL_ENABLED_AREA_TYPE = 'sia-stadsdeel'
