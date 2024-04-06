@@ -37,6 +37,8 @@ RUN set -eux;  \
         libmagic1 \
         libcairo2 \
         libpango1.0-0 \
+        libpcre3 \
+        libpcre3-dev \
         libpq-dev \
         gcc \
         graphviz \
