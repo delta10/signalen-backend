@@ -10,7 +10,7 @@ from signals.apps.services.validator.file import MimeTypeAllowedValidator, MimeT
 
 class TrainingSet(models.Model):
     """
-    This model represents a training set consisting of a single XLSX file, with a "Main", "Middle", "Sub" and "Text" column
+    This model represents a training set consisting of a single XLSX file, with a "Main", "Sub" and "Text" column
     """
     created_at = models.DateTimeField(editable=False, auto_now_add=True)
 

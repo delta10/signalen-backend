@@ -1,4 +1,5 @@
 from django.contrib import admin, messages
+from signals.apps.classification.tasks import run_training_task
 
 
 class TrainingSetAdmin(admin.ModelAdmin):
@@ -10,6 +11,8 @@ class TrainingSetAdmin(admin.ModelAdmin):
         """
         TODO: run actual training with dataset
         """
+        run_training_task.delay()
+
         self.message_user(
             request,
             "Training of the model has been initiated.",
