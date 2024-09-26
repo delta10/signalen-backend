@@ -2,5 +2,5 @@ from signals.celery import app
 
 
 @app.task
-def run_training_task():
-    print("running a training task")
+def train_classifier(training_set_ids):
+    print("will train a classifier using training sets:", training_set_ids)

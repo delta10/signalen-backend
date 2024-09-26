@@ -1,5 +1,5 @@
 from django.contrib import admin, messages
-from signals.apps.classification.tasks import run_training_task
+from signals.apps.classification.tasks import train_classifier
 import openpyxl
 
 
@@ -44,7 +44,7 @@ class TrainingSetAdmin(admin.ModelAdmin):
                 return
 
             # TODO: run actual training task
-            run_training_task.delay()
+            train_classifier.delay()
 
             self.message_user(
                 request,
