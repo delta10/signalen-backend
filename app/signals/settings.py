@@ -69,6 +69,7 @@ SIGNAL_APPS: list[str] = [
     'signals.apps.dataset',
     'signals.apps.questionnaires',
     'signals.apps.my_signals',
+    'signals.apps.zgw',
     'signals.apps.classification'
 ]
 
@@ -245,6 +246,10 @@ STATIC_ROOT: str = os.path.join(os.path.dirname(BASE_DIR), 'static')
 MEDIA_URL: str = '/signals/media/'
 MEDIA_ROOT: str = os.path.join(os.path.dirname(BASE_DIR), 'media')
 
+PROTECTED_FILE_SYSTEM_STORAGE: bool = os.getenv('PROTECTED_FILE_SYSTEM_STORAGE', False) in TRUE_VALUES
+if PROTECTED_FILE_SYSTEM_STORAGE:
+    DEFAULT_FILE_STORAGE: str = 'signals.apps.media.storages.ProtectedFileSystemStorage'
+
 AZURE_STORAGE_ENABLED: bool = os.getenv('AZURE_STORAGE_ENABLED', False) in TRUE_VALUES
 if AZURE_STORAGE_ENABLED:
     # Azure Settings
@@ -382,6 +387,16 @@ SIGMAX_SEND_FAIL_TIMEOUT_MINUTES: str | int = os.getenv('SIGMAX_SEND_FAIL_TIMEOU
 
 # Child settings
 SIGNAL_MAX_NUMBER_OF_CHILDREN: int = 10
+
+# ZGW settings
+ZGW_API_URL: str = os.getenv('ZGW_API_URL', '')
+ZGW_AUTH_TOKEN: str = os.getenv('ZGW_AUTH_TOKEN', '')
+ZGW_BRONORGANISATIE: str = os.getenv('ZGW_BRONORGANISATIE', '')
+ZGW_VERANTWOORDELIJKE_ORGANISATIE: str = os.getenv('ZGW_VERANTWOORDELIJKE_ORGANISATIE', '')
+ZGW_ZAAKTYPE: str = os.getenv('ZGW_ZAAKTYPE', '')
+ZGW_STATUS_RECEIVED: str = os.getenv('ZGW_STATUS_RECEIVED', '')
+ZGW_STATUS_DONE: str = os.getenv('ZGW_STATUS_DONE', '')
+ZGW_TIMEOUT: str = os.getenv('ZGW_TIMEOUT', 10)
 
 # The URL of the Frontend
 FRONTEND_URL: str | None = os.getenv('FRONTEND_URL', None)
