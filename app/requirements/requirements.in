@@ -40,3 +40,6 @@ requests
 textX
 uWSGI
 weasyprint==52.5
+scikit-learn
+pandas
+nltk

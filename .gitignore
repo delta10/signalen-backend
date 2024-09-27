@@ -190,3 +190,6 @@ dwh_media/
 *.lock
 *.env
 *.esri.gz
+
+# ignore classification models
+app/classification_models

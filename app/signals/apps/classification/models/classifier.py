@@ -13,16 +13,17 @@ class Classifier(models.Model):
     precision = models.FloatField(null=True, blank=True, default=0)
     recall = models.FloatField(null=True, blank=True, default=0)
     accuracy = models.FloatField(null=True, blank=True, default=0)
+    is_active = models.BooleanField(default=False)
 
     main_model = models.FileField(
-        upload_to='classification_models/middle/%Y/%m/%d/',
+        upload_to='classification_models/main/%Y/%m/%d/',
         null=True,
         blank=True,
         max_length=255,
     )
 
     sub_model = models.FileField(
-        upload_to='classification_models/middle_sub/%Y/%m/%d/',
+        upload_to='classification_models/main_sub/%Y/%m/%d/',
         null=True,
         blank=True,
         max_length=255,

@@ -1,4 +1,8 @@
+import this
+
 from django.contrib import admin, messages
+
+from signals.apps.classification.models import Classifier
 from signals.apps.classification.tasks import train_classifier
 import openpyxl
 
@@ -44,7 +48,7 @@ class TrainingSetAdmin(admin.ModelAdmin):
                 return
 
             # TODO: run actual training task
-            train_classifier.delay()
+            train_classifier.delay(training_set.id)
 
             self.message_user(
                 request,
@@ -59,7 +63,40 @@ class ClassifierAdmin(admin.ModelAdmin):
 
     a successful training job should create his own classifier object.
     """
-    list_display = ('name',)
+    list_display = ('name', 'precision', 'recall', 'accuracy', 'is_active', )
+    actions = ["activate_classifier"]
+
+    @admin.action(description="Maak deze classifier actief")
+    def activate_classifier(self, request, queryset):
+        """
+        Make chosen classifier active, disable other classifiers
+        """
+
+        if queryset.count() > 1:
+            self.message_user(
+                request,
+                "You can only make one classifier active.",
+                messages.ERROR
+            )
+            return
+
+        try:
+            Classifier.objects.update(is_active=False)
+            Classifier.objects.filter(id=queryset.first().id).update(is_active=True)
+
+            self.message_user(
+                request,
+                f"Classifier { queryset.first().name } has been activated.",
+                messages.SUCCESS
+            )
+        except Exception:
+            self.message_user(
+                request,
+                f"Classifier { queryset.first().name } has not been activated.",
+                messages.ERROR
+            )
+
+
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
