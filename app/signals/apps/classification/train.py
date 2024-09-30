@@ -3,6 +3,7 @@ import re
 
 import pandas as pd
 import nltk
+from django.core.files.base import ContentFile
 from nltk.stem.snowball import DutchStemmer
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.pipeline import Pipeline
@@ -101,17 +102,12 @@ class TrainClassifier:
         return precision, recall, accuracy
 
     def save_model(self):
-        save_dir = datetime.now().strftime('classification_models/main/%Y/%m/%d/')
-        os.makedirs(save_dir, exist_ok=True)
-
-        model_file_path = os.path.join(save_dir, 'main_model.pkl')
-        with open(model_file_path, 'wb') as f:
-            pickle.dump(self.model, f, pickle.HIGHEST_PROTOCOL)
+        pickled_model = pickle.dumps(self.model, pickle.HIGHEST_PROTOCOL)
 
         precision, recall, accuracy = self.evaluate_model()
 
         classifier = Classifier.objects.create(
-            main_model=model_file_path,
+            main_model=ContentFile(pickled_model, '_main_model.pkl'),
             precision=precision,
             recall=recall,
             accuracy=accuracy,
