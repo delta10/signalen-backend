@@ -11,7 +11,6 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import precision_score, recall_score, accuracy_score
 import pickle
-from datetime import datetime
 
 from signals.apps.classification.models import TrainingSet, Classifier
 
@@ -26,6 +25,7 @@ class TrainClassifier:
         self.test_texts = None
         self.train_labels = None
         self.test_labels = None
+        self.columns= ['Main', 'Sub']
 
         nltk.download('stopwords')
 
@@ -62,8 +62,10 @@ class TrainClassifier:
         return ' '.join(stemmed_words)
 
     def train_test_split(self):
+        labels = self.df[self.columns].applymap(lambda x: x.lower().capitalize()).apply('|'.join, axis=1)
+
         self.train_texts, self.test_texts, self.train_labels, self.test_labels = train_test_split(
-            self.df["Text"], self.df["_main_label"], test_size=0.2, stratify=self.df["_main_label"]
+            self.df["Text"], labels, test_size=0.2, stratify=labels
         )
 
     def train_model(self):
@@ -108,6 +110,7 @@ class TrainClassifier:
 
         classifier = Classifier.objects.create(
             main_model=ContentFile(pickled_model, '_main_model.pkl'),
+            sub_model=ContentFile(pickled_model, '_sub_model.pkl'),
             precision=precision,
             recall=recall,
             accuracy=accuracy,
