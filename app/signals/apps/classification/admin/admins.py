@@ -47,7 +47,6 @@ class TrainingSetAdmin(admin.ModelAdmin):
                     )
                 return
 
-            # TODO: run actual training task
             train_classifier.delay(training_set.id)
 
             self.message_user(
