@@ -16,7 +16,7 @@ from signals.apps.classification.models import TrainingSet, Classifier
 
 
 class TrainClassifier:
-    def __init__(self, training_set_id):
+    def __init__(self, training_set_id, columns, model_name, classifier_id=None):
         self.training_set_id = training_set_id
         self.training_set = self.get_training_set()
         self.df = None
@@ -25,7 +25,9 @@ class TrainClassifier:
         self.test_texts = None
         self.train_labels = None
         self.test_labels = None
-        self.columns= ['Main', 'Sub']
+        self.columns = columns
+        self.classifier_id = classifier_id
+        self.model_name = model_name
 
         nltk.download('stopwords')
 
@@ -45,7 +47,7 @@ class TrainClassifier:
     def preprocess_file(self):
         self.df = self.df.dropna(axis=0)
         self.df["_main_label"] = self.df["Main"]
-        self.df["_sub_label"] = self.df["Main"] + "|" + self.df["Sub"]
+        self.df["_sub_label"] = f'{self.df["Main"]}|{self.df["Sub"]}'
 
     def stopper(self):
         stop_words = list(set(nltk.corpus.stopwords.words('dutch')))
@@ -62,7 +64,7 @@ class TrainClassifier:
         return ' '.join(stemmed_words)
 
     def train_test_split(self):
-        labels = self.df[self.columns].applymap(lambda x: x.lower().capitalize()).apply('|'.join, axis=1)
+        labels = self.df[self.columns].map(lambda x: x.lower().capitalize()).apply('|'.join, axis=1)
 
         self.train_texts, self.test_texts, self.train_labels, self.test_labels = train_test_split(
             self.df["Text"], labels, test_size=0.2, stratify=labels
@@ -108,20 +110,29 @@ class TrainClassifier:
 
         precision, recall, accuracy = self.evaluate_model()
 
-        classifier = Classifier.objects.create(
-            main_model=ContentFile(pickled_model, '_main_model.pkl'),
-            sub_model=ContentFile(pickled_model, '_sub_model.pkl'),
-            precision=precision,
-            recall=recall,
-            accuracy=accuracy,
-            name=self.training_set.name,
-            is_active=False
-        )
+        if self.classifier_id is None:
+            classifier = Classifier.objects.create(
+                main_model=ContentFile(pickled_model, f'{self.model_name}.pkl'),
+                precision=precision,
+                recall=recall,
+                accuracy=accuracy,
+                name=self.training_set.name,
+                is_active=False
+            )
+        else:
+            classifier = Classifier.objects.get(pk=self.classifier_id)
+            classifier.sub_model = ContentFile(pickled_model, f'{self.model_name}.pkl')
+            classifier.precision = str(round((float(classifier.precision) + float(precision)) / 2, 2))
+            classifier.recall = str(round((float(classifier.recall) + float(recall)) / 2, 2))
+            classifier.accuracy = str(round((float(classifier.accuracy) + float(accuracy)) / 2, 2))
+
         classifier.save()
+
+        return classifier
 
     def run(self):
         self.read_file()
         self.preprocess_file()
         self.train_test_split()
         self.train_model()
-        self.save_model()
+        return self.save_model()
