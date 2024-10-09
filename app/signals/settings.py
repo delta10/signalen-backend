@@ -70,6 +70,7 @@ SIGNAL_APPS: list[str] = [
     'signals.apps.questionnaires',
     'signals.apps.my_signals',
     'signals.apps.zgw',
+    'signals.apps.classification'
 ]
 
 INSTALLED_APPS: list[str] = [

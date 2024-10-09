@@ -50,7 +50,7 @@ services:
       rabbit:
         condition: service_started
     env_file:
-      - docker-compose/environments/.celery
+      - docker-compose/environments/.api
     volumes:
       - ./app:/app
     command: celery -A signals worker -l debug
@@ -71,7 +71,7 @@ services:
       rabbit:
         condition: service_started
     env_file:
-      - docker-compose/environments/.celery
+      - docker-compose/environments/.api
     volumes:
       - ./app:/app
     command: celery -A signals flower --port=5566
@@ -92,7 +92,7 @@ services:
       celery:
         condition: service_started
     env_file:
-      - docker-compose/environments/.celery_beat
+      - docker-compose/environments/.api
     volumes:
       - ./app:/app
     command: celery -A signals beat -l debug --pidfile /tmp/celerybeat.pid
