@@ -17,7 +17,26 @@ class LegacyMlPredictCategoryViewV2(APIView):
             main_model = pickle.load(classifier.main_model)
             sub_model = pickle.load(classifier.sub_model)
 
-            data = {'hoofdrubriek': [main_model.predict([request.data['text']])], 'subrubriek': [sub_model.predict([request.data['text']])]}
+            text = request.data['text']
+
+            # Get prediction and probability for the main model
+            main_prediction = main_model.predict([text])
+            main_probability = main_model.predict_proba([text])
+
+            # Get prediction and probability for the sub model
+            sub_prediction = sub_model.predict([text])
+            sub_probability = sub_model.predict_proba([text])
+
+            data = {
+                'hoofdrubriek': [
+                    [main_prediction[0]],
+                    [main_probability[0][0]]
+                ],
+                'subrubriek': [
+                    [sub_prediction[0]],
+                    [sub_probability[0][0]]
+                ]
+            }
         except Classifier.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         except:
