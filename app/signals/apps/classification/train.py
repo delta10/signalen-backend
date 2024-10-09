@@ -16,7 +16,7 @@ from signals.apps.classification.models import TrainingSet, Classifier
 
 
 class TrainClassifier:
-    def __init__(self, training_set_id, columns, model_name, classifier_id=None):
+    def __init__(self, training_set_id):
         self.training_set_id = training_set_id
         self.training_set = self.get_training_set()
         self.df = None
@@ -25,9 +25,10 @@ class TrainClassifier:
         self.test_texts = None
         self.train_labels = None
         self.test_labels = None
-        self.columns = columns
-        self.classifier_id = classifier_id
-        self.model_name = model_name
+        self.classifier_id = None
+        self.train_sub_model = False
+        self.columns = ["Main"]
+        self.model_name = "_main_model"
 
         nltk.download('stopwords')
 
@@ -64,6 +65,9 @@ class TrainClassifier:
         return ' '.join(stemmed_words)
 
     def train_test_split(self):
+        if self.train_sub_model:
+            self.columns = ["Main", "Sub"]
+
         labels = self.df[self.columns].map(lambda x: x.lower().capitalize()).apply('|'.join, axis=1)
 
         self.train_texts, self.test_texts, self.train_labels, self.test_labels = train_test_split(
@@ -110,29 +114,45 @@ class TrainClassifier:
 
         precision, recall, accuracy = self.evaluate_model()
 
-        if self.classifier_id is None:
-            classifier = Classifier.objects.create(
-                main_model=ContentFile(pickled_model, f'{self.model_name}.pkl'),
-                precision=precision,
-                recall=recall,
-                accuracy=accuracy,
-                name=self.training_set.name,
-                is_active=False
-            )
-        else:
-            classifier = Classifier.objects.get(pk=self.classifier_id)
-            classifier.sub_model = ContentFile(pickled_model, f'{self.model_name}.pkl')
-            classifier.precision = str(round((float(classifier.precision) + float(precision)) / 2, 2))
-            classifier.recall = str(round((float(classifier.recall) + float(recall)) / 2, 2))
-            classifier.accuracy = str(round((float(classifier.accuracy) + float(accuracy)) / 2, 2))
+        classifier = Classifier.objects.create(
+            main_model=ContentFile(pickled_model, f'{self.model_name}.pkl'),
+            precision=precision,
+            recall=recall,
+            accuracy=accuracy,
+            name=self.training_set.name,
+            is_active=False
+        )
 
         classifier.save()
 
-        return classifier
+        self.classifier_id = classifier.id
+
+    def update_model(self):
+        self.model_name = "_sub_model"
+
+        pickled_model = pickle.dumps(self.model, pickle.HIGHEST_PROTOCOL)
+
+        precision, recall, accuracy = self.evaluate_model()
+
+        classifier = Classifier.objects.get(pk=self.classifier_id)
+        classifier.sub_model = ContentFile(pickled_model, f'{self.model_name}.pkl')
+        classifier.precision = str(round((float(classifier.precision) + float(precision)) / 2, 2))
+        classifier.recall = str(round((float(classifier.recall) + float(recall)) / 2, 2))
+        classifier.accuracy = str(round((float(classifier.accuracy) + float(accuracy)) / 2, 2))
+
+        classifier.save()
 
     def run(self):
         self.read_file()
         self.preprocess_file()
+
+        # Train main model
         self.train_test_split()
         self.train_model()
-        return self.save_model()
+        self.save_model()
+
+        # Train sub model
+        self.train_sub_model = True
+        self.train_test_split()
+        self.train_model()
+        self.update_model()
