@@ -29,7 +29,6 @@ from signals.apps.api.views import (
 )
 from signals.apps.api.views.category import PrivateCategoryIconViewSet
 from signals.apps.api.views.email_verification import EmailVerificationView
-from signals.apps.api.views.ml_tool_proxy_v2 import LegacyMlPredictCategoryViewV2
 from signals.apps.api.views.signals.private.signal_reporters import PrivateSignalReporterViewSet
 from signals.apps.api.views.status_message import (
     StatusMessagesCategoryPositionViewSet,
@@ -92,7 +91,7 @@ urlpatterns = [
     re_path(r'v1/private/status-messages/search/?$', StatusMessageSearchView.as_view(), name='status-message-search'),
 
     # Legacy prediction proxy endpoint, still needed
-    path('category/prediction', LegacyMlPredictCategoryViewV2.as_view(), name='ml-tool-predict-proxy'),
+    path('category/prediction', LegacyMlPredictCategoryView.as_view(), name='ml-tool-predict-proxy'),
 
     # The base routes of the API
     path('v1/', include(base_router.urls)),

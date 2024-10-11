@@ -8,6 +8,12 @@ from rest_framework.views import APIView
 
 from signals.apps.api.ml_tool.client import MLToolClient
 from signals.apps.signals.models import Category
+import pickle
+
+from django.conf import settings
+from rest_framework import status
+
+from signals.apps.classification.models import Classifier
 
 
 @extend_schema(exclude=True)
@@ -30,7 +36,7 @@ class LegacyMlPredictCategoryView(APIView):
             self._default_category_url = self.default_category.get_absolute_url(request=request)
         return self._default_category_url
 
-    def post(self, request, *args, **kwargs):
+    def get_prediction_old_ml_proxy(self, request):
         # Default empty response
         data = {'hoofdrubriek': [], 'subrubriek': []}
 
@@ -54,3 +60,47 @@ class LegacyMlPredictCategoryView(APIView):
                     data[key].append([response_data[key][1][0]])
 
         return Response(data)
+
+    def get_prediction_new_ml_proxy(self, request, classifier):
+        try:
+            main_model = pickle.load(classifier.main_model)
+            sub_model = pickle.load(classifier.sub_model)
+
+            text = request.data['text']
+
+            # Get prediction and probability for the main model
+            main_prediction = main_model.predict([text])
+            main_probability = main_model.predict_proba([text])
+
+            # Get prediction and probability for the sub model
+            sub_prediction = sub_model.predict([text])
+            sub_probability = sub_model.predict_proba([text])
+
+            main_slug = main_prediction[0]
+            sub_slug = sub_prediction[0].split('|')[1]
+
+            data = {
+                'hoofdrubriek': [
+                    [settings.BACKEND_URL + f'/signals/v1/public/terms/categories/{main_slug}'],
+                    [main_probability[0][0]]
+                ],
+                'subrubriek': [
+                    [settings.BACKEND_URL + f'/signals/v1/public/terms/categories/{main_slug}/sub_categories/{sub_slug}'],
+                    [sub_probability[0][0]]
+                ]
+            }
+        except:
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response(status=status.HTTP_200_OK, data=data)
+
+    def post(self, request, *args, **kwargs):
+        try:
+            classifier = Classifier.objects.get(is_active=True)
+            return self.get_prediction_new_ml_proxy(request, classifier)
+        except Classifier.DoesNotExist:
+            return self.get_prediction_old_ml_proxy(request)
+
+
+
+
