@@ -400,6 +400,7 @@ ZGW_TIMEOUT: str = os.getenv('ZGW_TIMEOUT', 10)
 
 # The URL of the Frontend
 FRONTEND_URL: str | None = os.getenv('FRONTEND_URL', None)
+BACKEND_URL: str | None = os.getenv('BACKEND_URL', 'http://localhost:8000')
 
 ML_TOOL_ENDPOINT: str = os.getenv('SIGNALS_ML_TOOL_ENDPOINT', 'https://api.data.amsterdam.nl/signals_mltool')  # noqa
 

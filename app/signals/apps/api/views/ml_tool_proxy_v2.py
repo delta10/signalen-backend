@@ -1,5 +1,6 @@
 import pickle
 
+from django.conf import settings
 from drf_spectacular.utils import extend_schema
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -27,13 +28,16 @@ class LegacyMlPredictCategoryViewV2(APIView):
             sub_prediction = sub_model.predict([text])
             sub_probability = sub_model.predict_proba([text])
 
+            main_slug = main_prediction[0]
+            sub_slug = sub_prediction[0].split('|')[1]
+
             data = {
                 'hoofdrubriek': [
-                    [main_prediction[0]],
+                    [settings.BACKEND_URL + f'/signals/v1/public/terms/categories/{main_slug}'],
                     [main_probability[0][0]]
                 ],
                 'subrubriek': [
-                    [sub_prediction[0]],
+                    [settings.BACKEND_URL + f'/signals/v1/public/terms/categories/{main_slug}/sub_categories/{sub_slug}'],
                     [sub_probability[0][0]]
                 ]
             }

@@ -11,6 +11,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import precision_score, recall_score, accuracy_score
 import pickle
+from django.utils.text import slugify
 
 from signals.apps.classification.models import TrainingSet, Classifier
 
@@ -20,15 +21,6 @@ class TrainClassifier:
         self.training_set_id = training_set_id
         self.training_set = self.get_training_set()
         self.df = None
-        self.model = None
-        self.train_texts = None
-        self.test_texts = None
-        self.train_labels = None
-        self.test_labels = None
-        self.classifier_id = None
-        self.train_sub_model = False
-        self.columns = ["Main"]
-        self.model_name = "_main_model"
 
         nltk.download('stopwords')
 
@@ -64,17 +56,14 @@ class TrainClassifier:
         stemmed_words = [stemmer.stem(word=word) for word in words]
         return ' '.join(stemmed_words)
 
-    def train_test_split(self):
-        if self.train_sub_model:
-            self.columns = ["Main", "Sub"]
+    def train_test_split(self, columns):
+        labels = self.df[columns].map(lambda x: slugify(x)).apply('|'.join, axis=1)
 
-        labels = self.df[self.columns].map(lambda x: x.lower().capitalize()).apply('|'.join, axis=1)
-
-        self.train_texts, self.test_texts, self.train_labels, self.test_labels = train_test_split(
+        return train_test_split(
             self.df["Text"], labels, test_size=0.2, stratify=labels
         )
 
-    def train_model(self):
+    def train_model(self, train_texts, train_labels):
         stop_words = self.stopper()
 
         pipeline = Pipeline([
@@ -97,25 +86,27 @@ class TrainClassifier:
         }
 
         grid_search = GridSearchCV(pipeline, parameters_slow, verbose=True, n_jobs=1, cv=5)
-        grid_search.fit(self.train_texts, self.train_labels)
+        grid_search.fit(train_texts, train_labels)
 
-        self.model = grid_search
+        return grid_search
 
-    def evaluate_model(self):
-        test_predict = self.model.predict(self.test_texts)
-        precision = str(round(precision_score(self.test_labels, test_predict, average='macro', zero_division=0), 2))
-        recall = str(round(recall_score(self.test_labels, test_predict, average='macro'), 2))
-        accuracy = str(round(accuracy_score(self.test_labels, test_predict), 2))
+    def evaluate_model(self, model, test_texts, test_labels):
+        test_predict = model.predict(test_texts)
+        precision = precision_score(test_labels, test_predict, average='macro', zero_division=0)
+        recall = recall_score(test_labels, test_predict, average='macro')
+        accuracy = accuracy_score(test_labels, test_predict)
 
         return precision, recall, accuracy
 
-    def save_model(self):
-        pickled_model = pickle.dumps(self.model, pickle.HIGHEST_PROTOCOL)
+    def save_model(self, main_model, sub_model, scores):
+        pickled_main_model = pickle.dumps(main_model, pickle.HIGHEST_PROTOCOL)
+        pickled_sub_model = pickle.dumps(sub_model, pickle.HIGHEST_PROTOCOL)
 
-        precision, recall, accuracy = self.evaluate_model()
+        precision, recall, accuracy = scores
 
         classifier = Classifier.objects.create(
-            main_model=ContentFile(pickled_model, f'{self.model_name}.pkl'),
+            main_model=ContentFile(pickled_main_model, '_main_model.pkl'),
+            sub_model=ContentFile(pickled_sub_model, '_sub_model.pkl'),
             precision=precision,
             recall=recall,
             accuracy=accuracy,
@@ -125,34 +116,21 @@ class TrainClassifier:
 
         classifier.save()
 
-        self.classifier_id = classifier.id
-
-    def update_model(self):
-        self.model_name = "_sub_model"
-
-        pickled_model = pickle.dumps(self.model, pickle.HIGHEST_PROTOCOL)
-
-        precision, recall, accuracy = self.evaluate_model()
-
-        classifier = Classifier.objects.get(pk=self.classifier_id)
-        classifier.sub_model = ContentFile(pickled_model, f'{self.model_name}.pkl')
-        classifier.precision = str(round((float(classifier.precision) + float(precision)) / 2, 2))
-        classifier.recall = str(round((float(classifier.recall) + float(recall)) / 2, 2))
-        classifier.accuracy = str(round((float(classifier.accuracy) + float(accuracy)) / 2, 2))
-
-        classifier.save()
-
     def run(self):
         self.read_file()
         self.preprocess_file()
 
         # Train main model
-        self.train_test_split()
-        self.train_model()
-        self.save_model()
+        train_texts, test_texts, train_labels, text_labels = self.train_test_split(['Main'])
+        main_model = self.train_model(train_texts, train_labels)
+        main_scores = self.evaluate_model(main_model, test_texts, text_labels)
 
         # Train sub model
-        self.train_sub_model = True
-        self.train_test_split()
-        self.train_model()
-        self.update_model()
+        train_texts, test_texts, train_labels, text_labels = self.train_test_split(['Main', 'Sub'])
+        sub_model = self.train_model(train_texts, train_labels)
+        sub_scores = self.evaluate_model(sub_model, test_texts, text_labels)
+
+        # scores te delen
+        scores = [(x + y) / 2 for x, y in zip(main_scores, sub_scores)]
+
+        self.save_model(main_model, sub_model, scores)
