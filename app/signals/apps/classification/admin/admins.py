@@ -64,6 +64,7 @@ class ClassifierAdmin(admin.ModelAdmin):
     """
     list_display = ('name', 'precision', 'recall', 'accuracy', 'is_active', )
     actions = ["activate_classifier"]
+    readonly_fields = ('training_status', 'training_error', )
 
     @admin.action(description="Maak deze classifier actief")
     def activate_classifier(self, request, queryset):

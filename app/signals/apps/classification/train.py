@@ -116,21 +116,55 @@ class TrainClassifier:
 
         classifier.save()
 
+    def create_model(self):
+        classifier = Classifier.objects.create(
+            name=self.training_set.name,
+            is_active=False,
+            training_status="RUNNING",
+        )
+
+        return classifier
+
+    def persist_model(self, classifier, main_model, sub_model, scores):
+        pickled_main_model = pickle.dumps(main_model, pickle.HIGHEST_PROTOCOL)
+        pickled_sub_model = pickle.dumps(sub_model, pickle.HIGHEST_PROTOCOL)
+
+        precision, recall, accuracy = scores
+
+        classifier.main_model = ContentFile(pickled_main_model, '_main_model.pkl')
+        classifier.sub_model = ContentFile(pickled_sub_model, '_sub_model.pkl')
+        classifier.precision=precision
+        classifier.recall=recall
+        classifier.accuracy=accuracy
+        classifier.save()
+
+    def update_status(self, classifier, status, error):
+        classifier.training_status = status
+        classifier.training_error = error
+        classifier.save()
+
     def run(self):
         self.read_file()
         self.preprocess_file()
 
-        # Train main model
-        train_texts, test_texts, train_labels, text_labels = self.train_test_split(['Main'])
-        main_model = self.train_model(train_texts, train_labels)
-        main_scores = self.evaluate_model(main_model, test_texts, text_labels)
+        classifier = self.create_model()
 
-        # Train sub model
-        train_texts, test_texts, train_labels, text_labels = self.train_test_split(['Main', 'Sub'])
-        sub_model = self.train_model(train_texts, train_labels)
-        sub_scores = self.evaluate_model(sub_model, test_texts, text_labels)
+        try:
+            # Train main model
+            train_texts, test_texts, train_labels, text_labels = self.train_test_split(['Main'])
+            main_model = self.train_model(train_texts, train_labels)
+            main_scores = self.evaluate_model(main_model, test_texts, text_labels)
 
-        # scores te delen
-        scores = [(x + y) / 2 for x, y in zip(main_scores, sub_scores)]
+            # Train sub model
+            train_texts, test_texts, train_labels, text_labels = self.train_test_split(['Main', 'Sub'])
+            sub_model = self.train_model(train_texts, train_labels)
+            sub_scores = self.evaluate_model(sub_model, test_texts, text_labels)
 
-        self.save_model(main_model, sub_model, scores)
+            # scores te delen
+            scores = [(x + y) / 2 for x, y in zip(main_scores, sub_scores)]
+
+            self.persist_model(classifier, main_model, sub_model, scores)
+            self.update_status(classifier, 'COMPLETED', None)
+        except ValueError as e:
+            self.update_status(classifier, 'FAILED', e)
+
