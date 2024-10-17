@@ -47,6 +47,7 @@ COPY app/requirements /app/requirements
 
 RUN set -eux; \
     pip install --no-cache -r /app/requirements/requirements.txt; \
+    pip install --no-cache -r /app/signals/apps/classification/requirements.txt; \
     pip install --no-cache tox; \
     chgrp signals /app; \
     chmod g+w /app; \

@@ -30,7 +30,6 @@ opencensus-ext-django
 opencensus-ext-logging
 opencensus-ext-postgresql
 opencensus-ext-requests
-openpyxl
 Pillow
 psycopg2-binary
 pypdf
@@ -40,6 +39,3 @@ requests
 textX
 uWSGI
 weasyprint==52.5
-scikit-learn
-pandas
-nltk
