@@ -65,6 +65,7 @@ click==8.1.7
     #   click-didyoumean
     #   click-plugins
     #   click-repl
+    #   nltk
 click-didyoumean==0.3.1
     # via celery
 click-plugins==1.1.1
@@ -186,6 +187,10 @@ inflection==0.5.1
     # via drf-spectacular
 isodate==0.6.1
     # via azure-storage-blob
+joblib==1.4.2
+    # via
+    #   nltk
+    #   scikit-learn
 josepy==1.14.0
     # via mozilla-django-oidc
 jsonschema==4.23.0
@@ -212,6 +217,13 @@ msal-extensions==1.2.0
     # via azure-identity
 networkx==3.3
     # via -r requirements/requirements.in
+nltk==3.9.1
+    # via -r requirements/requirements.in
+numpy==2.1.2
+    # via
+    #   pandas
+    #   scikit-learn
+    #   scipy
 o365==2.0.36
     # via django-o365mail
 oauthlib==3.2.2
@@ -236,6 +248,8 @@ opencensus-ext-postgresql==0.1.3
 opencensus-ext-requests==0.8.0
     # via -r requirements/requirements.in
 openpyxl==3.1.5
+    # via -r requirements/requirements.in
+pandas==2.2.3
     # via -r requirements/requirements.in
 pillow==10.4.0
     # via
@@ -290,17 +304,22 @@ python-dateutil==2.9.0.post0
     #   celery
     #   elasticsearch-dsl
     #   o365
+    #   pandas
     #   python-crontab
 python-magic==0.4.27
     # via -r requirements/requirements.in
 pytz==2024.1
-    # via flower
+    # via
+    #   flower
+    #   pandas
 pyyaml==6.0.1
     # via drf-spectacular
 referencing==0.35.1
     # via
     #   jsonschema
     #   jsonschema-specifications
+regex==2024.9.11
+    # via nltk
 requests==2.32.3
     # via
     #   -r requirements/requirements.in
@@ -320,6 +339,10 @@ rpds-py==0.19.1
     #   referencing
 rsa==4.9
     # via google-auth
+scikit-learn==1.5.2
+    # via -r requirements/requirements.in
+scipy==1.14.1
+    # via scikit-learn
 six==1.16.0
     # via
     #   azure-core
@@ -336,6 +359,8 @@ sqlparse==0.5.1
     #   django-silk
 textx==4.0.1
     # via -r requirements/requirements.in
+threadpoolctl==3.5.0
+    # via scikit-learn
 tinycss2==1.3.0
     # via
     #   cairosvg
@@ -343,6 +368,8 @@ tinycss2==1.3.0
     #   weasyprint
 tornado==6.4.1
     # via flower
+tqdm==4.66.5
+    # via nltk
 typing-extensions==4.12.2
     # via
     #   azure-core
@@ -354,6 +381,7 @@ tzdata==2024.1
     #   celery
     #   django-celery-beat
     #   o365
+    #   pandas
 tzlocal==5.2
     # via o365
 uritemplate==4.1.1
