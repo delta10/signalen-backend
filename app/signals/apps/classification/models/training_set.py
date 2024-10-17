@@ -1,6 +1,7 @@
 from django.contrib.gis.db import models
 
 from signals import settings
+from signals.apps.classification.utils import _get_storage_backend
 from signals.apps.services.domain.checker_factories import ContentCheckerFactory
 from signals.apps.services.domain.mimetypes import MimeTypeFromContentResolverFactory, \
     MimeTypeFromFilenameResolverFactory
@@ -18,6 +19,7 @@ class TrainingSet(models.Model):
 
     file = models.FileField(
         upload_to='training_sets/%Y/%m/%d/',
+        storage=_get_storage_backend,
         null=False,
         blank=False,
         max_length=255,

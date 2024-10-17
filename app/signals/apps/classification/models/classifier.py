@@ -1,5 +1,7 @@
 from django.contrib.gis.db import models
 
+from signals.apps.classification.utils import _get_storage_backend
+
 
 class Classifier(models.Model):
     """
@@ -19,6 +21,7 @@ class Classifier(models.Model):
         upload_to='classification_models/main/%Y/%m/%d/',
         null=True,
         blank=True,
+        storage=_get_storage_backend,
         max_length=255,
     )
 
@@ -26,5 +29,6 @@ class Classifier(models.Model):
         upload_to='classification_models/main_sub/%Y/%m/%d/',
         null=True,
         blank=True,
+        storage=_get_storage_backend,
         max_length=255,
     )
