@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import re
 
@@ -18,27 +19,37 @@ from signals.apps.classification.models import TrainingSet, Classifier
 
 
 class TrainClassifier:
-    def __init__(self, training_set_id):
-        self.training_set_id = training_set_id
-        self.training_set = self.get_training_set()
+    def __init__(self, training_set_ids):
+        self.training_set_ids = training_set_ids
+        self.training_sets = self.get_training_sets()
         self.df = None
 
         nltk.download('stopwords', download_dir=settings.NLTK_DOWNLOAD_DIR)
 
-    def get_training_set(self):
-        return TrainingSet.objects.get(pk=self.training_set_id)
+    def get_training_sets(self):
+        return TrainingSet.objects.filter(pk__in=self.training_set_ids)
 
-    def read_file(self):
-        _, extension = os.path.splitext(self.training_set.file.name)
+    def read_files(self):
+        dataframes = []
 
-        if extension == '.csv':
-            self.df = pd.read_csv(self.training_set.file, sep=None, engine='python')
-        elif extension == '.xlsx':
-            self.df = pd.read_excel(self.training_set.file)
+        for training_set in self.training_sets:
+            _, extension = os.path.splitext(training_set.file.name)
+
+            if extension == '.csv':
+                df = pd.read_csv(training_set.file, sep=None, engine='python')
+            elif extension == '.xlsx':
+                df = pd.read_excel(training_set.file)
+            else:
+                raise Exception(f'Unsupported file type: {extension} in {training_set.file.name}')
+
+            dataframes.append(df)
+
+        if dataframes:
+            self.df = pd.concat(dataframes, ignore_index=True)
         else:
-            raise Exception('Could not read input file. Extension should be .csv or .xlsx')
+            self.df = pd.DataFrame()
 
-    def preprocess_file(self):
+    def preprocess_data(self):
         self.df = self.df.dropna(axis=0)
         self.df["_main_label"] = self.df["Main"]
         self.df["_sub_label"] = f'{self.df["Main"]}|{self.df["Sub"]}'
@@ -111,7 +122,7 @@ class TrainClassifier:
             precision=precision,
             recall=recall,
             accuracy=accuracy,
-            name=self.training_set.name,
+            name=f"model-{datetime.now().strftime('%d-%m-%Y-%H:%M')}",
             is_active=False
         )
 
@@ -119,7 +130,7 @@ class TrainClassifier:
 
     def create_model(self):
         classifier = Classifier.objects.create(
-            name=self.training_set.name,
+            name=f"model-{datetime.now().strftime('%d-%m-%Y-%H:%M')}",
             is_active=False,
             training_status="RUNNING",
         )
@@ -145,8 +156,8 @@ class TrainClassifier:
         classifier.save()
 
     def run(self):
-        self.read_file()
-        self.preprocess_file()
+        self.read_files()
+        self.preprocess_data()
 
         classifier = self.create_model()
 

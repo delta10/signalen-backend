@@ -19,6 +19,8 @@ class TrainingSetAdmin(admin.ModelAdmin):
         First we validate if there are no missing columns (Main, Sub and Text column are required), after this we check if there is atleast one row of data (next
         to the headers)
         """
+        training_set_ids = []
+
         for training_set in queryset:
             file = training_set.file
 
@@ -47,13 +49,15 @@ class TrainingSetAdmin(admin.ModelAdmin):
                     )
                 return
 
-            train_classifier.delay(training_set.id)
+            training_set_ids.append(training_set.id)
 
-            self.message_user(
-                request,
-                "Training of the model has been initiated.",
-                messages.SUCCESS,
-            )
+        train_classifier.delay(training_set_ids)
+
+        self.message_user(
+            request,
+            "Training of the model has been initiated.",
+            messages.SUCCESS,
+        )
 
 
 class ClassifierAdmin(admin.ModelAdmin):

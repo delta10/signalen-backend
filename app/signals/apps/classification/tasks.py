@@ -3,8 +3,8 @@ from signals.celery import app
 
 
 @app.task
-def train_classifier(training_set_id):
-    TrainClassifier(training_set_id).run()
+def train_classifier(training_set_ids):
+    TrainClassifier(training_set_ids).run()
 
 
 
