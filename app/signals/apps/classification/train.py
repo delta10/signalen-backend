@@ -61,7 +61,7 @@ class TrainClassifier:
             self.df = pd.DataFrame()
 
     def read_database(self):
-        if self.use_signals_in_database_for_training:
+        if not self.use_signals_in_database_for_training and self.use_signals_in_database_for_training != "False":
             signals = Signal.objects.filter(status__state=workflow.AFGEHANDELD).values(
                 'text',
                 sub_category=F('category_assignment__category__name'),

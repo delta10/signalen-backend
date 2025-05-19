@@ -33,8 +33,6 @@ class TrainingSetAdmin(admin.ModelAdmin):
         training_set_ids = []
         use_signals_in_database_for_training = request.POST['use_signals_in_database_for_training']
 
-        print("use_signals_in_database_for_training", use_signals_in_database_for_training)
-
         for training_set in queryset:
             file = training_set.file
 
