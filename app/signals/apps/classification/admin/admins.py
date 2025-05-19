@@ -1,4 +1,5 @@
 from django.contrib import admin, messages
+from django import forms
 from django.http import FileResponse, HttpResponse
 from django.urls import reverse, path
 from django.utils.html import format_html
@@ -8,9 +9,18 @@ from signals.apps.classification.tasks import train_classifier
 import openpyxl
 
 
+class RunTrainingForm(admin.helpers.ActionForm):
+    use_signals_in_database_for_training = forms.ChoiceField(
+        choices=((False, "Nee"), (True, "Ja")),
+        label='Neem meldingen uit Signalen mee',
+        required=False
+    )
+
+
 class TrainingSetAdmin(admin.ModelAdmin):
     list_display = ('name', 'file', )
     actions = ["run_training_with_training_set"]
+    action_form = RunTrainingForm
 
     @admin.action(description="Train model met geselecteerde dataset")
     def run_training_with_training_set(self, request, queryset):
@@ -21,6 +31,9 @@ class TrainingSetAdmin(admin.ModelAdmin):
         to the headers)
         """
         training_set_ids = []
+        use_signals_in_database_for_training = request.POST['use_signals_in_database_for_training']
+
+        print("use_signals_in_database_for_training", use_signals_in_database_for_training)
 
         for training_set in queryset:
             file = training_set.file
@@ -52,13 +65,17 @@ class TrainingSetAdmin(admin.ModelAdmin):
 
             training_set_ids.append(training_set.id)
 
-        train_classifier.delay(training_set_ids)
+        train_classifier.delay(training_set_ids, use_signals_in_database_for_training)
 
         self.message_user(
             request,
             "Training of the model has been initiated.",
             messages.SUCCESS,
         )
+
+    @admin.action(description="Train model met geselecteerde dataset en huidige meldingen")
+    def run_training_with_training_set_and_current_signals(self, request, queryset):
+        print(self, request, queryset)
 
 
 class ClassifierAdmin(admin.ModelAdmin):
@@ -74,7 +91,7 @@ class ClassifierAdmin(admin.ModelAdmin):
     @admin.action(description="Maak deze classifier actief")
     def activate_classifier(self, request, queryset):
         """
-        Make chosen classifier active, disable other classifiers
+        Make the chosen classifier active, disable other classifiers
         """
 
         if queryset.count() > 1:

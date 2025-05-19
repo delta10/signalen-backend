@@ -6,6 +6,7 @@ import io
 import pandas as pd
 import nltk
 from django.core.files.base import ContentFile
+from django.db.models import F
 from nltk.stem.snowball import DutchStemmer
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.pipeline import Pipeline
@@ -16,6 +17,10 @@ import pickle
 from django.conf import settings
 from django.utils.text import slugify
 import matplotlib
+
+from signals.apps.signals import workflow
+from signals.apps.signals.models import Signal
+
 matplotlib.use('agg')
 
 import matplotlib.pyplot as plt
@@ -24,8 +29,9 @@ from signals.apps.classification.models import TrainingSet, Classifier
 
 
 class TrainClassifier:
-    def __init__(self, training_set_ids):
+    def __init__(self, training_set_ids, use_signals_in_database_for_training):
         self.training_set_ids = training_set_ids
+        self.use_signals_in_database_for_training = use_signals_in_database_for_training
         self.training_sets = self.get_training_sets()
         self.df = None
 
@@ -54,10 +60,35 @@ class TrainClassifier:
         else:
             self.df = pd.DataFrame()
 
+    def read_database(self):
+        if self.use_signals_in_database_for_training:
+            signals = Signal.objects.filter(status__state=workflow.AFGEHANDELD).values(
+                'text',
+                sub_category=F('category_assignment__category__name'),
+                main_category=F('category_assignment__category__parent__name'),
+                sub_active=F('category_assignment__category__is_active'),
+                main_active=F('category_assignment__category__parent__is_active'),
+                sub_slug = F('category_assignment__category__slug'),
+                main_slug = F('category_assignment__category__parent__slug')
+            )
+
+            data = [{
+                "Sub": signal["sub_category"],
+                "Main": signal["main_category"],
+                "Text": signal["text"]
+            } for signal in signals
+                if 'overig' not in signal["main_slug"]
+                and 'overig' not in signal["sub_slug"]
+                and signal["main_active"] == True
+                and signal["sub_active"] == True
+            ]
+
+            signals_df = pd.DataFrame(data)
+
+            self.df = pd.concat([self.df, signals_df], ignore_index=True)
+
     def preprocess_data(self):
         self.df = self.df.dropna(axis=0)
-        self.df["_main_label"] = self.df["Main"]
-        self.df["_sub_label"] = f'{self.df["Main"]}|{self.df["Sub"]}'
 
     def stopper(self):
         stop_words = list(set(nltk.corpus.stopwords.words('dutch')))
@@ -178,6 +209,7 @@ class TrainClassifier:
 
     def run(self):
         self.read_files()
+        self.read_database()
         self.preprocess_data()
 
         classifier = self.create_model()
