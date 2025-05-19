@@ -71,10 +71,6 @@ class TrainingSetAdmin(admin.ModelAdmin):
             messages.SUCCESS,
         )
 
-    @admin.action(description="Train model met geselecteerde dataset en huidige meldingen")
-    def run_training_with_training_set_and_current_signals(self, request, queryset):
-        print(self, request, queryset)
-
 
 class ClassifierAdmin(admin.ModelAdmin):
     """
