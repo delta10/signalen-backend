@@ -61,7 +61,7 @@ class TrainClassifier:
             self.df = pd.DataFrame()
 
     def read_database(self):
-        if not self.use_signals_in_database_for_training and self.use_signals_in_database_for_training != "False":
+        if self.use_signals_in_database_for_training and self.use_signals_in_database_for_training != "False":
             signals = Signal.objects.filter(status__state=workflow.AFGEHANDELD).values(
                 'text',
                 sub_category=F('category_assignment__category__name'),
@@ -90,6 +90,12 @@ class TrainClassifier:
     def preprocess_data(self):
         self.df = self.df.dropna(axis=0)
 
+        self.df = (
+            self.df.groupby("Sub")
+                   .apply(lambda x: x.sample(n=min(len(x), 5000), random_state=42))
+                   .reset_index(drop=True)
+        )
+
     def stopper(self):
         stop_words = list(set(nltk.corpus.stopwords.words('dutch')))
         return stop_words
@@ -106,6 +112,8 @@ class TrainClassifier:
 
     def train_test_split(self, columns):
         labels = self.df[columns].map(lambda x: slugify(x)).apply('|'.join, axis=1)
+
+        # TODO: fix this error (The least populated class in y has only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2.) or atleast show this error to user
 
         return train_test_split(
             self.df["Text"], labels, test_size=0.2, stratify=labels
