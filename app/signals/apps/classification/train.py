@@ -1,6 +1,7 @@
 from datetime import datetime
 import os
 import re
+import io
 
 import pandas as pd
 import nltk
@@ -10,10 +11,14 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import precision_score, recall_score, accuracy_score
+from sklearn.metrics import precision_score, recall_score, accuracy_score, ConfusionMatrixDisplay
 import pickle
 from django.conf import settings
 from django.utils.text import slugify
+import matplotlib
+matplotlib.use('agg')
+
+import matplotlib.pyplot as plt
 
 from signals.apps.classification.models import TrainingSet, Classifier
 
@@ -108,7 +113,21 @@ class TrainClassifier:
         recall = recall_score(test_labels, test_predict, average='macro')
         accuracy = accuracy_score(test_labels, test_predict)
 
-        return precision, recall, accuracy
+        plt.rcParams["figure.figsize"] = (30,30)
+
+        confusion_matrix = ConfusionMatrixDisplay.from_predictions(
+            y_true=test_labels,
+            y_pred=test_predict,
+            xticks_rotation='vertical',
+            cmap="Blues"
+        )
+
+        pdf = io.BytesIO()
+        plt.savefig(pdf, format="pdf")
+        confusion_matrix_pdf = pdf.getvalue()
+        pdf.close()
+
+        return (precision, recall, accuracy), confusion_matrix_pdf
 
     def save_model(self, main_model, sub_model, scores):
         pickled_main_model = pickle.dumps(main_model, pickle.HIGHEST_PROTOCOL)
@@ -137,7 +156,7 @@ class TrainClassifier:
 
         return classifier
 
-    def persist_model(self, classifier, main_model, sub_model, scores):
+    def persist_model(self, classifier, main_model, sub_model, scores, main_confusion_matrix, sub_confusion_matrix):
         pickled_main_model = pickle.dumps(main_model, pickle.HIGHEST_PROTOCOL)
         pickled_sub_model = pickle.dumps(sub_model, pickle.HIGHEST_PROTOCOL)
 
@@ -145,6 +164,8 @@ class TrainClassifier:
 
         classifier.main_model = ContentFile(pickled_main_model, '_main_model.pkl')
         classifier.sub_model = ContentFile(pickled_sub_model, '_sub_model.pkl')
+        classifier.main_confusion_matrix = ContentFile(main_confusion_matrix, '_main_confusion_matrix.pdf')
+        classifier.sub_confusion_matrix = ContentFile(sub_confusion_matrix, '_sub_confusion_matrix.pdf')
         classifier.precision=precision
         classifier.recall=recall
         classifier.accuracy=accuracy
@@ -165,17 +186,17 @@ class TrainClassifier:
             # Train main model
             train_texts, test_texts, train_labels, text_labels = self.train_test_split(['Main'])
             main_model = self.train_model(train_texts, train_labels)
-            main_scores = self.evaluate_model(main_model, test_texts, text_labels)
+            main_scores, main_confusion_matrix = self.evaluate_model(main_model, test_texts, text_labels)
 
             # Train sub model
             train_texts, test_texts, train_labels, text_labels = self.train_test_split(['Main', 'Sub'])
             sub_model = self.train_model(train_texts, train_labels)
-            sub_scores = self.evaluate_model(sub_model, test_texts, text_labels)
+            sub_scores, sub_confusion_matrix = self.evaluate_model(sub_model, test_texts, text_labels)
 
             # scores te delen
             scores = [(x + y) / 2 for x, y in zip(main_scores, sub_scores)]
 
-            self.persist_model(classifier, main_model, sub_model, scores)
+            self.persist_model(classifier, main_model, sub_model, scores, main_confusion_matrix, sub_confusion_matrix)
             self.update_status(classifier, 'COMPLETED', None)
         except ValueError as e:
             self.update_status(classifier, 'FAILED', e)

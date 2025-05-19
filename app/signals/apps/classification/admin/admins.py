@@ -1,6 +1,7 @@
-import this
-
 from django.contrib import admin, messages
+from django.http import FileResponse, HttpResponse
+from django.urls import reverse, path
+from django.utils.html import format_html
 
 from signals.apps.classification.models import Classifier
 from signals.apps.classification.tasks import train_classifier
@@ -68,7 +69,7 @@ class ClassifierAdmin(admin.ModelAdmin):
     """
     list_display = ('name', 'precision', 'recall', 'accuracy', 'is_active', )
     actions = ["activate_classifier"]
-    readonly_fields = ('training_status', 'training_error', )
+    readonly_fields = ('training_status', 'training_error', 'download_main_confusion_matrix', 'download_sub_confusion_matrix',)
 
     @admin.action(description="Maak deze classifier actief")
     def activate_classifier(self, request, queryset):
@@ -100,12 +101,59 @@ class ClassifierAdmin(admin.ModelAdmin):
                 messages.ERROR
             )
 
+    fieldsets = (
+        (None, {
+            'fields': (
+                'name',
+                'download_main_confusion_matrix',
+                'download_sub_confusion_matrix',
+                'precision',
+                'recall',
+                'accuracy',
+                'is_active',
+                'training_status',
+                'training_error',
+            )
+        }),
+    )
 
+    def download_main_confusion_matrix(self, obj):
+        if obj.main_confusion_matrix:
+            url = reverse('admin:classification_classifier_download', args=[obj.pk, 'main_confusion_matrix'])
 
-    def get_readonly_fields(self, request, obj=None):
-        if obj:
-            return [f.name for f in self.model._meta.fields]
-        return []
+            return format_html(
+                '<a href="{}" class="button" style="padding:6px 12px; background:#007bff; color:white; border-radius:4px;">Download main confusion matrix</a>',
+                url
+            )
+        return "No file found"
+
+    def download_sub_confusion_matrix(self, obj):
+        if obj.sub_confusion_matrix:
+            url = reverse('admin:classification_classifier_download', args=[obj.pk, 'sub_confusion_matrix'])
+
+            return format_html(
+                '<a href="{}" class="button" style="padding:6px 12px; background:#007bff; color:white; border-radius:4px;">Download sub confusion matrix</a>',
+                url
+            )
+        return "No file found"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        my_urls = [
+            path('<path:object_id>/download/<str:field_name>/',
+                 self.admin_site.admin_view(self.download_file),
+                 name='classification_classifier_download'),
+        ]
+        return my_urls + urls
+
+    def download_file(self, request, object_id, field_name):
+        obj = self.get_object(request, object_id)
+        file_field = getattr(obj, field_name)
+        if file_field:
+            response = FileResponse(file_field.open('rb'))
+            response['Content-Disposition'] = f'attachment; filename="{file_field.name.split("/")[-1]}"'
+            return response
+        return HttpResponse("File not found", status=404)
 
     def has_add_permission(self, request):
         return False
