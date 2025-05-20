@@ -46,9 +46,7 @@ class TrainClassifier:
         for training_set in self.training_sets:
             _, extension = os.path.splitext(training_set.file.name)
 
-            if extension == '.csv':
-                df = pd.read_csv(training_set.file, sep=None, engine='python')
-            elif extension == '.xlsx':
+            if extension == '.xlsx':
                 df = pd.read_excel(training_set.file)
             else:
                 raise Exception(f'Unsupported file type: {extension} in {training_set.file.name}')

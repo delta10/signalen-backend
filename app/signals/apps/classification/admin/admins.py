@@ -77,7 +77,7 @@ class TrainingSetAdmin(admin.ModelAdmin):
             if missing_subcategories:
                 self.message_user(
                     request,
-                    f"The training set {training_set.name} contains unknown subcategories: {', '.join(missing_subcategories)}",
+                    f"The training set {training_set.name} contains unknown subcategories: {', '.join(missing_subcategories)}. Add these to Signalen before continuing.",
                     messages.ERROR
                 )
                 return
