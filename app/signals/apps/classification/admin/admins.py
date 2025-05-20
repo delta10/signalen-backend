@@ -1,5 +1,7 @@
+import pandas as pd
 from django.contrib import admin, messages
 from django import forms
+from django.db.models import F
 from django.http import FileResponse, HttpResponse
 from django.urls import reverse, path
 from django.utils.html import format_html
@@ -7,6 +9,9 @@ from django.utils.html import format_html
 from signals.apps.classification.models import Classifier
 from signals.apps.classification.tasks import train_classifier
 import openpyxl
+
+from signals.apps.signals import workflow
+from signals.apps.signals.models import Category, Signal
 
 
 class RunTrainingForm(admin.helpers.ActionForm):
@@ -39,6 +44,7 @@ class TrainingSetAdmin(admin.ModelAdmin):
             wb = openpyxl.load_workbook(file)
             first_sheet = wb.active
 
+            # Check if there are any missing columns
             headers = [cell.value for cell in first_sheet[1]]
             required_columns = ["Main", "Sub", "Text"]
             missing_columns = [col for col in required_columns if col not in headers]
@@ -52,6 +58,7 @@ class TrainingSetAdmin(admin.ModelAdmin):
 
                 return
 
+            # Check if the training set contains any data rows
             data_rows = list(first_sheet.iter_rows(min_row=2, values_only=True))
             if not any(data_rows):
                 self.message_user(
@@ -61,13 +68,80 @@ class TrainingSetAdmin(admin.ModelAdmin):
                     )
                 return
 
+            # Check if there are no subcategories present in the training set that are not present in the database
+            sub_col_index = headers.index("Sub")
+            subcategory_values = {row[sub_col_index] for row in data_rows if row[sub_col_index]}
+            existing_subcategories = set(Category.objects.filter(name__in=subcategory_values).values_list('name', flat=True))
+            missing_subcategories = subcategory_values - existing_subcategories
+
+            if missing_subcategories:
+                self.message_user(
+                    request,
+                    f"The training set {training_set.name} contains unknown subcategories: {', '.join(missing_subcategories)}",
+                    messages.ERROR
+                )
+                return
+
             training_set_ids.append(training_set.id)
+
+        # Training will fail if any subcategory or main category appears in only one signal,
+        # when use_signals_in_database_for_training is set to True
+        if use_signals_in_database_for_training and use_signals_in_database_for_training != "False":
+            signals = Signal.objects.filter(
+                status__state=workflow.AFGEHANDELD,
+                category_assignment__category__is_active=True,
+                category_assignment__category__parent__is_active=True
+            ).exclude(
+                category_assignment__category__slug="overig",
+                category_assignment__category__parent__slug="overig"
+            ).values(
+                'text',
+                sub_category=F('category_assignment__category__name'),
+                main_category=F('category_assignment__category__parent__name'),
+            )
+
+            data = [{
+                "Sub": signal["sub_category"],
+                "Main": signal["main_category"],
+                "Text": signal["text"]
+            } for signal in signals]
+
+            signals_df = pd.DataFrame(data)
+
+            sub_counts = signals_df['Sub'].value_counts()
+            main_counts = signals_df['Main'].value_counts()
+
+            sub_issues = sub_counts[sub_counts == 1]
+            main_issues = main_counts[main_counts == 1]
+
+            if sub_issues.any() or main_issues.any():
+                parts = []
+
+                if not sub_issues.empty:
+                    sub_list = ", ".join(map(str, sub_issues.index))
+                    parts.append(f"sub categories: {sub_list}")
+
+                if not main_issues.empty:
+                    main_list = ", ".join(map(str, main_issues.index))
+                    parts.append(f"main categories: {main_list}")
+
+                message = (
+                        "The database contains not the minimum of two signals with " +
+                        " and ".join(parts)
+                )
+
+                self.message_user(
+                    request,
+                    message,
+                    messages.ERROR
+                )
+                return
 
         train_classifier.delay(training_set_ids, use_signals_in_database_for_training)
 
         self.message_user(
             request,
-            "Training of the model has been initiated.",
+            "Training of the model has been initiated. This can take a few minutes.",
             messages.SUCCESS,
         )
 

@@ -62,26 +62,24 @@ class TrainClassifier:
 
     def read_database(self):
         if self.use_signals_in_database_for_training and self.use_signals_in_database_for_training != "False":
-            signals = Signal.objects.filter(status__state=workflow.AFGEHANDELD).values(
+            signals = Signal.objects.filter(
+                status__state=workflow.AFGEHANDELD,
+                category_assignment__category__is_active=True,
+                category_assignment__category__parent__is_active=True
+            ).exclude(
+                category_assignment__category__slug="overig",
+                category_assignment__category__parent__slug="overig"
+            ).values(
                 'text',
                 sub_category=F('category_assignment__category__name'),
                 main_category=F('category_assignment__category__parent__name'),
-                sub_active=F('category_assignment__category__is_active'),
-                main_active=F('category_assignment__category__parent__is_active'),
-                sub_slug = F('category_assignment__category__slug'),
-                main_slug = F('category_assignment__category__parent__slug')
             )
 
             data = [{
                 "Sub": signal["sub_category"],
                 "Main": signal["main_category"],
                 "Text": signal["text"]
-            } for signal in signals
-                if 'overig' not in signal["main_slug"]
-                and 'overig' not in signal["sub_slug"]
-                and signal["main_active"] == True
-                and signal["sub_active"] == True
-            ]
+            } for signal in signals]
 
             signals_df = pd.DataFrame(data)
 
@@ -112,8 +110,6 @@ class TrainClassifier:
 
     def train_test_split(self, columns):
         labels = self.df[columns].map(lambda x: slugify(x)).apply('|'.join, axis=1)
-
-        # TODO: fix this error (The least populated class in y has only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2.) or atleast show this error to user
 
         return train_test_split(
             self.df["Text"], labels, test_size=0.2, stratify=labels
