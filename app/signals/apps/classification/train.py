@@ -1,47 +1,96 @@
+from datetime import datetime
 import os
 import re
+import io
 
 import pandas as pd
 import nltk
 from django.core.files.base import ContentFile
+from django.db.models import F
 from nltk.stem.snowball import DutchStemmer
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import precision_score, recall_score, accuracy_score
+from sklearn.metrics import precision_score, recall_score, accuracy_score, ConfusionMatrixDisplay
 import pickle
 from django.conf import settings
 from django.utils.text import slugify
+import matplotlib
+
+from signals.apps.signals import workflow
+from signals.apps.signals.models import Signal
+
+matplotlib.use('agg')
+
+import matplotlib.pyplot as plt
 
 from signals.apps.classification.models import TrainingSet, Classifier
 
 
 class TrainClassifier:
-    def __init__(self, training_set_id):
-        self.training_set_id = training_set_id
-        self.training_set = self.get_training_set()
+    def __init__(self, training_set_ids, use_signals_in_database_for_training):
+        self.training_set_ids = training_set_ids
+        self.use_signals_in_database_for_training = use_signals_in_database_for_training
+        self.training_sets = self.get_training_sets()
         self.df = None
 
         nltk.download('stopwords', download_dir=settings.NLTK_DOWNLOAD_DIR)
 
-    def get_training_set(self):
-        return TrainingSet.objects.get(pk=self.training_set_id)
+    def get_training_sets(self):
+        return TrainingSet.objects.filter(pk__in=self.training_set_ids)
 
-    def read_file(self):
-        _, extension = os.path.splitext(self.training_set.file.name)
+    def read_files(self):
+        dataframes = []
 
-        if extension == '.csv':
-            self.df = pd.read_csv(self.training_set.file, sep=None, engine='python')
-        elif extension == '.xlsx':
-            self.df = pd.read_excel(self.training_set.file)
+        for training_set in self.training_sets:
+            _, extension = os.path.splitext(training_set.file.name)
+
+            if extension == '.xlsx':
+                df = pd.read_excel(training_set.file)
+            else:
+                raise Exception(f'Unsupported file type: {extension} in {training_set.file.name}')
+
+            dataframes.append(df)
+
+        if dataframes:
+            self.df = pd.concat(dataframes, ignore_index=True)
         else:
-            raise Exception('Could not read input file. Extension should be .csv or .xlsx')
+            self.df = pd.DataFrame()
 
-    def preprocess_file(self):
+    def read_database(self):
+        if self.use_signals_in_database_for_training and self.use_signals_in_database_for_training != "False":
+            signals = Signal.objects.filter(
+                status__state=workflow.AFGEHANDELD,
+                category_assignment__category__is_active=True,
+                category_assignment__category__parent__is_active=True
+            ).exclude(
+                category_assignment__category__slug="overig",
+                category_assignment__category__parent__slug="overig"
+            ).values(
+                'text',
+                sub_category=F('category_assignment__category__name'),
+                main_category=F('category_assignment__category__parent__name'),
+            )
+
+            data = [{
+                "Sub": signal["sub_category"],
+                "Main": signal["main_category"],
+                "Text": signal["text"]
+            } for signal in signals]
+
+            signals_df = pd.DataFrame(data)
+
+            self.df = pd.concat([self.df, signals_df], ignore_index=True)
+
+    def preprocess_data(self):
         self.df = self.df.dropna(axis=0)
-        self.df["_main_label"] = self.df["Main"]
-        self.df["_sub_label"] = f'{self.df["Main"]}|{self.df["Sub"]}'
+
+        self.df = (
+            self.df.groupby("Sub")
+                   .apply(lambda x: x.sample(n=min(len(x), 5000), random_state=42))
+                   .reset_index(drop=True)
+        )
 
     def stopper(self):
         stop_words = list(set(nltk.corpus.stopwords.words('dutch')))
@@ -97,7 +146,21 @@ class TrainClassifier:
         recall = recall_score(test_labels, test_predict, average='macro')
         accuracy = accuracy_score(test_labels, test_predict)
 
-        return precision, recall, accuracy
+        plt.rcParams["figure.figsize"] = (30,30)
+
+        confusion_matrix = ConfusionMatrixDisplay.from_predictions(
+            y_true=test_labels,
+            y_pred=test_predict,
+            xticks_rotation='vertical',
+            cmap="Blues"
+        )
+
+        pdf = io.BytesIO()
+        plt.savefig(pdf, format="pdf")
+        confusion_matrix_pdf = pdf.getvalue()
+        pdf.close()
+
+        return (precision, recall, accuracy), confusion_matrix_pdf
 
     def save_model(self, main_model, sub_model, scores):
         pickled_main_model = pickle.dumps(main_model, pickle.HIGHEST_PROTOCOL)
@@ -111,7 +174,7 @@ class TrainClassifier:
             precision=precision,
             recall=recall,
             accuracy=accuracy,
-            name=self.training_set.name,
+            name=f"model-{datetime.now().strftime('%d-%m-%Y-%H:%M')}",
             is_active=False
         )
 
@@ -119,14 +182,14 @@ class TrainClassifier:
 
     def create_model(self):
         classifier = Classifier.objects.create(
-            name=self.training_set.name,
+            name=f"model-{datetime.now().strftime('%d-%m-%Y-%H:%M')}",
             is_active=False,
             training_status="RUNNING",
         )
 
         return classifier
 
-    def persist_model(self, classifier, main_model, sub_model, scores):
+    def persist_model(self, classifier, main_model, sub_model, scores, main_confusion_matrix, sub_confusion_matrix):
         pickled_main_model = pickle.dumps(main_model, pickle.HIGHEST_PROTOCOL)
         pickled_sub_model = pickle.dumps(sub_model, pickle.HIGHEST_PROTOCOL)
 
@@ -134,6 +197,8 @@ class TrainClassifier:
 
         classifier.main_model = ContentFile(pickled_main_model, '_main_model.pkl')
         classifier.sub_model = ContentFile(pickled_sub_model, '_sub_model.pkl')
+        classifier.main_confusion_matrix = ContentFile(main_confusion_matrix, '_main_confusion_matrix.pdf')
+        classifier.sub_confusion_matrix = ContentFile(sub_confusion_matrix, '_sub_confusion_matrix.pdf')
         classifier.precision=precision
         classifier.recall=recall
         classifier.accuracy=accuracy
@@ -145,8 +210,9 @@ class TrainClassifier:
         classifier.save()
 
     def run(self):
-        self.read_file()
-        self.preprocess_file()
+        self.read_files()
+        self.read_database()
+        self.preprocess_data()
 
         classifier = self.create_model()
 
@@ -154,17 +220,17 @@ class TrainClassifier:
             # Train main model
             train_texts, test_texts, train_labels, text_labels = self.train_test_split(['Main'])
             main_model = self.train_model(train_texts, train_labels)
-            main_scores = self.evaluate_model(main_model, test_texts, text_labels)
+            main_scores, main_confusion_matrix = self.evaluate_model(main_model, test_texts, text_labels)
 
             # Train sub model
             train_texts, test_texts, train_labels, text_labels = self.train_test_split(['Main', 'Sub'])
             sub_model = self.train_model(train_texts, train_labels)
-            sub_scores = self.evaluate_model(sub_model, test_texts, text_labels)
+            sub_scores, sub_confusion_matrix = self.evaluate_model(sub_model, test_texts, text_labels)
 
             # scores te delen
             scores = [(x + y) / 2 for x, y in zip(main_scores, sub_scores)]
 
-            self.persist_model(classifier, main_model, sub_model, scores)
+            self.persist_model(classifier, main_model, sub_model, scores, main_confusion_matrix, sub_confusion_matrix)
             self.update_status(classifier, 'COMPLETED', None)
         except ValueError as e:
             self.update_status(classifier, 'FAILED', e)

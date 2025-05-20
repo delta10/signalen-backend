@@ -39,3 +39,19 @@ class Classifier(models.Model):
         storage=_get_storage_backend,
         max_length=255,
     )
+
+    main_confusion_matrix = models.FileField(
+        upload_to='classification_models/main_confusion_matrix/%Y/%m/%d/',
+        null=True,
+        blank=True,
+        storage=_get_storage_backend,
+        max_length=255,
+    )
+
+    sub_confusion_matrix = models.FileField(
+        upload_to='classification_models/sub_confusion_matrix/%Y/%m/%d/',
+        null=True,
+        blank=True,
+        storage=_get_storage_backend,
+        max_length=255,
+    )
