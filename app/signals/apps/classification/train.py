@@ -23,6 +23,9 @@ from signals.apps.signals.models import Signal
 
 matplotlib.use('agg')
 
+if settings.NLTK_DOWNLOAD_DIR:
+    nltk.data.path.append(settings.NLTK_DOWNLOAD_DIR)
+
 import matplotlib.pyplot as plt
 
 from signals.apps.classification.models import TrainingSet, Classifier
