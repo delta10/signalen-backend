@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 
 from signals.apps.api.ml_tool.client import MLToolClient
 from signals.apps.signals.models import Category
+import nltk
 
 
 @extend_schema(exclude=True)
@@ -20,6 +21,8 @@ class LegacyMlPredictCategoryView(APIView):
     def __init__(self, *args, **kwargs):
         # When we cannot translate we return the 'overig-overig' category url
         self.default_category = Category.objects.get(slug='overig', parent__isnull=False, parent__slug='overig')
+
+        nltk.download('stopwords')
 
         super().__init__(*args, **kwargs)
 
