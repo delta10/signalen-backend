@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (C) 2019 - 2023 Gemeente Amsterdam
+import logging
+
 from django.core.exceptions import ValidationError as DjangoCoreValidationError
 from drf_spectacular.utils import extend_schema
 from rest_framework.exceptions import ValidationError
@@ -14,6 +16,7 @@ from django.conf import settings
 from rest_framework import status
 
 from signals.apps.classification.models import Classifier
+import nltk
 
 
 @extend_schema(exclude=True)
@@ -26,6 +29,8 @@ class MlPredictCategoryView(APIView):
     def __init__(self, *args, **kwargs):
         # When we cannot translate we return the 'overig-overig' category url
         self.default_category = Category.objects.get(slug='overig', parent__isnull=False, parent__slug='overig')
+
+        nltk.download('stopwords', download_dir=settings.NLTK_DOWNLOAD_DIR)
 
         super().__init__(*args, **kwargs)
 
@@ -89,8 +94,9 @@ class MlPredictCategoryView(APIView):
                     [sub_probability[0][0]]
                 ]
             }
-        except:
-            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            logging.error(e)
+            return Response('Predicting sub and main category went wrong', content_type='application/json', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response(status=status.HTTP_200_OK, data=data)
 
