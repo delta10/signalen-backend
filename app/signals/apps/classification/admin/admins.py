@@ -68,7 +68,7 @@ class TrainingSetAdmin(admin.ModelAdmin):
                     )
                 return
 
-            # Check if there are no subcategories present in the training set that are not present in the database
+            # Check if there are no sub categories present in the training set that are not present in the database
             sub_col_index = headers.index("Sub")
             subcategory_values = {row[sub_col_index] for row in data_rows if row[sub_col_index]}
             existing_subcategories = set(Category.objects.filter(name__in=subcategory_values).values_list('name', flat=True))
@@ -77,7 +77,22 @@ class TrainingSetAdmin(admin.ModelAdmin):
             if missing_subcategories:
                 self.message_user(
                     request,
-                    f"The training set {training_set.name} contains unknown subcategories: {', '.join(missing_subcategories)}. Add these to Signalen before continuing.",
+                    f"The training set {training_set.name} contains unknown sub categories: {', '.join(missing_subcategories)}. Add these to Signalen before continuing.",
+                    messages.ERROR
+                )
+                return
+
+            # Check if there are no main categories present in the training set that are not present in the database
+            main_col_index = headers.index("Main")
+            maincategory_values = {row[main_col_index] for row in data_rows if row[main_col_index]}
+            existing_maincategories = set(
+                Category.objects.filter(name__in=maincategory_values).values_list('name', flat=True))
+            missing_maincategories = maincategory_values - existing_maincategories
+
+            if missing_maincategories:
+                self.message_user(
+                    request,
+                    f"The training set {training_set.name} contains unknown main categories: {', '.join(missing_maincategories)}. Add these to Signalen before continuing.",
                     messages.ERROR
                 )
                 return

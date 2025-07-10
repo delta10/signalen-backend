@@ -74,24 +74,26 @@ class MlPredictCategoryView(APIView):
             text = request.data['text']
 
             # Get prediction and probability for the main model
-            main_prediction = main_model.predict([text])
-            main_probability = main_model.predict_proba([text])
+            main_prediction = main_model.predict([text])[0]
+            main_proba = main_model.predict_proba([text])[0]
+            main_index = list(main_model.classes_).index(main_prediction)
+            main_prob = main_proba[main_index]
 
             # Get prediction and probability for the sub model
-            sub_prediction = sub_model.predict([text])
-            sub_probability = sub_model.predict_proba([text])
-
-            main_slug = main_prediction[0]
-            sub_slug = sub_prediction[0].split('|')[1]
+            sub_prediction = sub_model.predict([text])[0]
+            sub_proba = sub_model.predict_proba([text])[0]
+            sub_category = sub_prediction.split('|')[1]
+            sub_index = list(sub_model.classes_).index(sub_prediction)
+            sub_prob = sub_proba[sub_index]
 
             data = {
                 'hoofdrubriek': [
-                    [settings.BACKEND_URL + f'/signals/v1/public/terms/categories/{main_slug}'],
-                    [main_probability[0][0]]
+                    [settings.BACKEND_URL + f'/signals/v1/public/terms/categories/{main_prediction}'],
+                    [main_prob],
                 ],
                 'subrubriek': [
-                    [settings.BACKEND_URL + f'/signals/v1/public/terms/categories/{main_slug}/sub_categories/{sub_slug}'],
-                    [sub_probability[0][0]]
+                    [settings.BACKEND_URL + f'/signals/v1/public/terms/categories/{main_prediction}/sub_categories/{sub_category}'],
+                    [sub_prob]
                 ]
             }
         except Exception as e:
