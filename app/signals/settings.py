@@ -85,6 +85,7 @@ SIGNAL_APPS: list[str] = [
     'signals.apps.classification',
     'signals.apps.relations',
     'signals.apps.automation',
+    'signals.apps.notifications',
 ]
 
 INSTALLED_APPS: list[str] = [
@@ -513,6 +514,12 @@ SIGNALS_API_GEO_PAGINATE_BY: int = int(os.getenv(
 
 TEST_LOGIN: str = os.getenv('TEST_LOGIN', 'signals.admin@example.com')
 
+# Signalen App backend related environment variables
+MUNICIPALITY_CODE: str = os.getenv("MUNICIPALITY_CODE", None)
+SIGNALEN_APP_BACKEND_URL: str = os.getenv("SIGNALEN_APP_BACKEND_URL", None)
+SIGNALEN_APP_BACKEND_SECRET: str = os.getenv("SIGNALEN_APP_BACKEND_SECRET", None)
+
+
 # Feature Flags
 FEATURE_FLAGS: dict[str, bool] = {
     'API_DETERMINE_STADSDEEL_ENABLED': os.getenv('API_DETERMINE_STADSDEEL_ENABLED', True) in TRUE_VALUES,
@@ -540,6 +547,9 @@ FEATURE_FLAGS: dict[str, bool] = {
 
     # Run routing expressions again when updating signal subcategory or location
     'DSL_RUN_ROUTING_EXPRESSIONS_ON_UPDATES': os.getenv('DSL_RUN_ROUTING_EXPRESSIONS_ON_UPDATES', False) in TRUE_VALUES,
+
+    # Send notifications to Signalen App if this is enabled (Disabled by default)
+    'SEND_NOTIFICATIONS_TO_SIGNALEN_APP': os.getenv('SEND_NOTIFICATIONS_TO_SIGNALEN_APP', False) in TRUE_VALUES,
 }
 
 # Per default log to console
