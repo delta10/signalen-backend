@@ -7,7 +7,7 @@ import requests
 logger = logging.getLogger(__name__)
 
 @app.task
-def send_notification(municipality_code: str, message: str, signal_id: int, notification_type: str) -> None:
+def send_notification(municipality_code: str, payload: dict, signal_id: int, notification_type: str) -> None:
     if not settings.SIGNALEN_APP_BACKEND_URL:
         logger.warning("There is no SIGNALEN_APP_BACKEND_URL environment variable in the environment configured")
         return
@@ -20,7 +20,7 @@ def send_notification(municipality_code: str, message: str, signal_id: int, noti
         response = requests.post(
             f"{settings.SIGNALEN_APP_BACKEND_URL}/signalen/notifications",
             json={
-                "payload": message,
+                "payload": payload,
                 "signal_id": signal_id,
                 "notification_type": notification_type,
                 "municipality_code": municipality_code,

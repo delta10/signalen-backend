@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 @receiver(update_status, dispatch_uid='update_status_send_notification')
 def send_notification_for_updated_signal_status(sender, signal_obj: Signal, status: Status, *args, **kwargs):
-    if not settings.FEATURE_FLAGS['SEND_NOTIFICATIONS_TO_SIGNALEN_APP']:
+    if not settings.SIGNALEN_APP_BACKEND_URL:
         return
 
     municipality_code = settings.MUNICIPALITY_CODE
@@ -30,7 +30,10 @@ def send_notification_for_updated_signal_status(sender, signal_obj: Signal, stat
 
     tasks.send_notification.delay(
         municipality_code=municipality_code,
-        message=message,
+        payload={
+            'message': message,
+            'status_code': status.state,
+        },
         signal_id=signal_obj.pk,
-        notification_type="Status_Update"
+        notification_type='UPDATE_STATUS'
     )
