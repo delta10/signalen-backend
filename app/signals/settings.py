@@ -262,6 +262,18 @@ PROTECTED_FILE_SYSTEM_STORAGE: bool = os.getenv('PROTECTED_FILE_SYSTEM_STORAGE',
 if PROTECTED_FILE_SYSTEM_STORAGE:
     DEFAULT_FILE_STORAGE: str = 'signals.apps.media.storages.ProtectedFileSystemStorage'
 
+S3_STORAGE_ENABLED: bool = os.getenv('S3_STORAGE_ENABLED', True) in TRUE_VALUES
+if S3_STORAGE_ENABLED:
+    # S3 Settings
+    DEFAULT_FILE_STORAGE: str = 'storages.backends.s3.S3Storage'
+
+    AWS_ACCESS_KEY_ID: str | None = os.getenv('S3_STORAGE_ACCESS_KEY')
+    AWS_SECRET_ACCESS_KEY: str | None = os.getenv('S3_STORAGE_SECRET_KEY')
+    AWS_STORAGE_BUCKET_NAME: str | None = os.getenv('S3_STORAGE_BUCKET_NAME')
+    AWS_QUERYSTRING_EXPIRE: int | None = int(os.getenv('S3_STORAGE_EXPIRATION_SECS', 5*60))
+    AWS_S3_ENDPOINT_URL: str | None = os.getenv('S3_ENDPOINT_URL')
+    AWS_S3_REGION_NAME: str | None = os.getenv('S3_REGION_NAME')
+
 AZURE_STORAGE_ENABLED: bool = os.getenv('AZURE_STORAGE_ENABLED', False) in TRUE_VALUES
 if AZURE_STORAGE_ENABLED:
     # Azure Settings
