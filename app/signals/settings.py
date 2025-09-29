@@ -667,4 +667,4 @@ else:
     })
 
 # Automation settings
-SET_STATE_DELAY = int(os.getenv("SET_STATE_DELAY", "300"))
+SET_STATE_DELAY = int(os.getenv("SET_STATE_DELAY", "0"))
