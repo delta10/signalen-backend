@@ -19,7 +19,7 @@ def create_initial(signal_id: int) -> None:
     for set_state_rule in set_state_rules:
         evaluation = SignalDslService().evaluate_expression(signal, set_state_rule.expression)
         if evaluation:
-            handle_set_state.apply_async(args=[signal.id, set_state_rule.id], countdown=settings.SET_STATE_DELAY)
+            handle_set_state.apply_async(args=[signal.id, set_state_rule.id], countdown=settings.AUTOMATION_SET_STATE_DELAY)
             return
 
     for forward_to_external_rule in forward_to_external_rules:
