@@ -677,3 +677,6 @@ else:
             'filters': ['require_debug_true', ],
         }
     })
+
+# Automation settings
+AUTOMATION_SET_STATE_DELAY = int(os.getenv("AUTOMATION_SET_STATE_DELAY", "0"))
