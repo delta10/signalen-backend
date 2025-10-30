@@ -13,6 +13,9 @@ class AreaAdmin(ImportExportModelAdmin, ExportActionMixin, GISModelAdmin):
     list_display = ['name', 'code', '_type']
     list_filter = ['_type__code']
 
+    class Media:
+        js = ('admin/js/show_geometry_field.js',)
+
 
 class AreaTypeAdmin(ImportExportModelAdmin, ExportActionMixin):
     resource_class = AreaTypeResource
