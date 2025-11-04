@@ -32,10 +32,9 @@ jobs:
       - name: Deploy with webhook
         run: |
           curl -X POST ${{ SEMAPHORE_WEBHOOK_URL }} \
-            -H "Authorization: Bearer ${{ SEMAPHORE_WEBHOOK_TOKEN }}" \
-            -d '{"from_pipeline": "true", "municipality_dnsname": "review-${{ steps.randtag.outputs.tag }}.review-scw.delta10-review.nl", "signalen_bucket_name": "signalen-review", "signalen_backend_tag": "${{ steps.randtag.outputs.tag }}" }'
+          -H "Authorization: Bearer ${{ SEMAPHORE_WEBHOOK_TOKEN }}" \
+          -d '{"from_pipeline": "true", "municipality_dnsname": "review-${{ steps.randtag.outputs.tag }}.review-scw.delta10-review.nl", "signalen_bucket_name": "signalen-review", "signalen_backend_tag": "${{ steps.randtag.outputs.tag }}" }'
 
-
-      # Output preview URL (customize as needed)
+      # Output preview URL
       - name: Output preview URL
         run: echo "Preview: https://meldingen.review-${{ steps.randtag.outputs.tag }}.review-scw.delta10-review.nl"
