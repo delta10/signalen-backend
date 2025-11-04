@@ -1,9 +1,7 @@
+
 name: PR Review Environment
 
-on:
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
-  workflow_dispatch:
+on: [ pull_request, workflow_dispatch ]
 
 permissions:
   contents: read
