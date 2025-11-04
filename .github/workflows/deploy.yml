@@ -59,4 +59,5 @@ jobs:
           -d '{"from_pipeline": "true", "municipality_dnsname": "review-${{ steps.randtag.outputs.tag }}.review-scw.delta10-review.nl", "signalen_bucket_name": "signalen-review", "signalen_backend_tag": "${{ steps.randtag.outputs.tag }}" }'
 
       - name: Output preview URL
-        run: echo "Preview: https://meldingen.review-${{ steps.randtag.outputs.tag }}.review-scw.delta10-review.nl"
+        run: |
+          echo "Preview: https://meldingen.review-${{ steps.randtag.outputs.tag }}.review-scw.delta10-review.nl"
