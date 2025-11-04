@@ -1,21 +1,14 @@
 name: PR Review Environment
 
-on:
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
-  workflow_dispatch:
+on: [ pull_request ]
 
 permissions:
   contents: read
   packages: write
 
-
 env:
-  # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
   IMAGE_PREFIX: ${{ github.repository }}
-
 
 jobs:
   deploy:
@@ -39,22 +32,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}:${{ steps.randtag.outputs.tag }}
+          tags: |
+            type=raw,value=${{ steps.randtag.outputs.tag }}
 
-      # https://github.com/docker/build-push-action
       - name: Build and push Docker image
-        id: build-and-push
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: ${{ env.IMAGE_PREFIX }}:${{ steps.randtag.outputs.tag }}
+          # IMPORTANT: push to GHCR, not Docker Hub
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -65,7 +57,6 @@ jobs:
           -H "Authorization: Bearer ${{ secrets.SEMAPHORE_WEBHOOK_TOKEN }}" \
           -d '{"from_pipeline": "true", "municipality_dnsname": "review-${{ steps.randtag.outputs.tag }}.review-scw.delta10-review.nl", "signalen_bucket_name": "signalen-review", "signalen_backend_tag": "${{ steps.randtag.outputs.tag }}" }'
 
-      # Output preview URL
       - name: Output preview URL
         run: |
           echo "Preview: https://meldingen.review-${{ steps.randtag.outputs.tag }}.review-scw.delta10-review.nl"
