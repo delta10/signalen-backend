@@ -37,4 +37,5 @@ jobs:
 
       # Output preview URL
       - name: Output preview URL
-        run: echo "Preview: https://meldingen.review-${{ steps.randtag.outputs.tag }}.review-scw.delta10-review.nl"
+        run: |
+          echo "Preview: https://meldingen.review-${{ steps.randtag.outputs.tag }}.review-scw.delta10-review.nl"
