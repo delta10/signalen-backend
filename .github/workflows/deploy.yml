@@ -8,6 +8,13 @@ permissions:
   contents: read
   packages: write
 
+
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_PREFIX: ${{ github.repository }}
+
 jobs:
   deploy:
     if: github.event.action != 'closed'
@@ -23,13 +30,19 @@ jobs:
         id: randtag
         run: echo "tag=pr-${{ github.event.number }}-$(echo ${{ github.event.pull_request.head.sha }} | cut -c1-12)" >> $GITHUB_OUTPUT
 
-      - name: Log into registry ghcr.io
-        if: github.event_name != 'pull_request'
+      - name: Log into registry ${{ env.REGISTRY }}
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.image }}
 
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image
@@ -38,7 +51,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: signalen/backend:${{ steps.randtag.outputs.tag }}
+          tags: ${{ IMAGE_PREFIX }}:${{ steps.randtag.outputs.tag }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
