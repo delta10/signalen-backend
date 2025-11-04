@@ -51,7 +51,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ IMAGE_PREFIX }}:${{ steps.randtag.outputs.tag }}
+          tags: ${{ env.IMAGE_PREFIX }}:${{ steps.randtag.outputs.tag }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
