@@ -9,7 +9,6 @@ class LlmResponse(BaseModel):
     text: str
 
 class LlmPrediction(models.Model):
-    text = models.TextField(null=False, blank=False)
     llm_predicted_category = models.TextField(null=False, blank=False)
     tfidf_predicted_category = models.TextField(null=False, blank=False)
     signal = models.ForeignKey(
