@@ -4,10 +4,12 @@
 from django.dispatch import receiver
 
 from signals.apps.signals.managers import create_initial
+from signals import settings
 
 from . import tasks
 
 
 @receiver(create_initial, dispatch_uid='get_llm_prediction')
 def create_initial_handler(sender, signal_obj, *args, **kwargs):
-    tasks.predict_signal.delay(signal_id=signal_obj.pk)
+    if settings.LLM_BACKGROUND_PREDICTION_ENABLED:
+        tasks.predict_signal.delay(signal_id=signal_obj.pk)
