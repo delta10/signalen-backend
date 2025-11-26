@@ -40,3 +40,4 @@ textX
 uWSGI
 weasyprint==52.5
 django-import-export
+openai
