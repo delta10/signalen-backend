@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (C) 2025 Delta10 B.V.
+from functools import lru_cache
+
 from django.db.models import QuerySet, Q
 from django.utils.text import slugify
 from openai import OpenAI
@@ -10,13 +12,16 @@ from signals.apps.llm_prediction.models import LlmResponse
 from signals.apps.signals.models import Category
 
 
-def get_openai_client() -> OpenAI:
-    client = OpenAI(
-        api_key=settings.LLM_API_KEY,
-        base_url=settings.LLM_API_URL
-    )
+_client = None
 
-    return client
+def get_openai_client() -> OpenAI:
+    global _client
+    if _client is None:
+        _client = OpenAI(
+            api_key=settings.LLM_API_KEY,
+            base_url=settings.LLM_API_URL
+        )
+    return _client
 
 
 def get_categories_with_description() -> QuerySet[tuple[str, str, str]]:
@@ -37,6 +42,7 @@ def format_categories(categories: QuerySet[tuple[str, str, str]]) -> str:
     return "\n".join(result)
 
 
+@lru_cache(maxsize=1)
 def get_system_prompt() -> str:
     categories = get_categories_with_description()
 
@@ -90,6 +96,7 @@ def get_system_prompt() -> str:
 
     return system_prompt
 
+
 def get_prediction(text: str) -> LlmResponse:
     prompt = get_system_prompt()
 
@@ -114,11 +121,13 @@ def get_prediction(text: str) -> LlmResponse:
             }
         },
         temperature=0.0,
+        max_tokens=150,
     )
 
     output = json.loads(response.choices[0].message.content)
 
     return LlmResponse(**output)
+
 
 def resolve_prediction(prediction: LlmResponse) -> tuple[str, str]:
     """
