@@ -112,7 +112,7 @@ def get_prediction(text: str) -> LlmResponse:
                 "content": text,
             },
         ],
-        model='mistral-nemo-instruct-2407',
+        model='mistral-small-3.2-24b-instruct-2506',
         response_format={
             "type": "json_schema",
             "json_schema": {
