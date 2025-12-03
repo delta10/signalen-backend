@@ -2,7 +2,7 @@
 # Copyright (C) 2025 Delta10 B.V.
 from functools import lru_cache
 
-from django.db.models import QuerySet, Q
+from django.db.models import QuerySet
 from django.utils.text import slugify
 from openai import OpenAI
 import json
@@ -27,7 +27,6 @@ def get_openai_client() -> OpenAI:
 def get_categories_with_description() -> QuerySet[tuple[str, str, str]]:
     categories = (Category.objects
         .filter(parent__isnull=False)
-        .filter(~Q(description=""), description__isnull=False)
         .values_list("parent__name", "name", "description")
     )
 
@@ -37,7 +36,7 @@ def get_categories_with_description() -> QuerySet[tuple[str, str, str]]:
 def format_categories(categories: QuerySet[tuple[str, str, str]]) -> str:
     result = []
     for parent_name, name, description in categories:
-        result.append(f"  - {parent_name} -> {name}: {description}")
+        result.append(f"  - {parent_name} -> {name}: {description or ''}")
 
     return "\n".join(result)
 
@@ -112,7 +111,7 @@ def get_prediction(text: str) -> LlmResponse:
                 "content": text,
             },
         ],
-        model='mistral-small-3.2-24b-instruct-2506',
+        model=settings.LLM_MODEL,
         response_format={
             "type": "json_schema",
             "json_schema": {
@@ -124,7 +123,10 @@ def get_prediction(text: str) -> LlmResponse:
         max_tokens=150,
     )
 
-    output = json.loads(response.choices[0].message.content)
+    try:
+        output = json.loads(response.choices[0].message.content)
+    except Exception as e:
+        return LlmResponse(main_category="Overig", sub_category="Overig", text=text)
 
     return LlmResponse(**output)
 

@@ -124,10 +124,10 @@ class MlPredictCategoryView(APIView):
         return Response(status=status.HTTP_200_OK, data=data)
 
     def post(self, request, *args, **kwargs):
-        try:
-            if settings.LLM_FOREGROUND_PREDICTION_ENABLED:
-                return self.get_prediction_llm(request)
+        if settings.LLM_FOREGROUND_PREDICTION_ENABLED:
+            return self.get_prediction_llm(request)
 
+        try:
             classifier = Classifier.objects.get(is_active=True)
             return self.get_prediction_new_ml_proxy(request, classifier)
         except Classifier.DoesNotExist:
