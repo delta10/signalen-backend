@@ -85,6 +85,7 @@ SIGNAL_APPS: list[str] = [
     'signals.apps.questionnaires',
     'signals.apps.my_signals',
     'signals.apps.classification',
+    'signals.apps.llm_prediction',
     'signals.apps.relations',
     'signals.apps.automation',
     'signals.apps.notifications',
@@ -691,3 +692,10 @@ IMPORT_EXPORT_FORMATS = [JSON]
 
 # Automation settings
 AUTOMATION_SET_STATE_DELAY = int(os.getenv("AUTOMATION_SET_STATE_DELAY", "0"))
+
+# LLM settings
+LLM_BACKGROUND_PREDICTION_ENABLED = os.getenv("LLM_BACKGROUND_PREDICTION_ENABLED", "False") in TRUE_VALUES
+LLM_FOREGROUND_PREDICTION_ENABLED = os.getenv("LLM_FOREGROUND_PREDICTION_ENABLED", "False") in TRUE_VALUES
+LLM_API_URL = os.getenv("LLM_API_URL", None)
+LLM_API_KEY = os.getenv("LLM_API_KEY", None)
+LLM_MODEL = os.getenv("LLM_MODEL", "mistral-small-3.2-24b-instruct-2506")

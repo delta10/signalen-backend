@@ -46,10 +46,12 @@ RUN set -eux;  \
 
 COPY app/requirements /app/requirements
 COPY app/signals/apps/classification/requirements.txt /app/signals/apps/classification/requirements.txt
+COPY app/signals/apps/llm_prediction/requirements.txt /app/signals/apps/llm_prediction/requirements.txt
 
 RUN set -eux; \
     pip install --no-cache -r /app/requirements/requirements.txt; \
     pip install --no-cache -r /app/signals/apps/classification/requirements.txt; \
+    pip install --no-cache -r /app/signals/apps/llm_prediction/requirements.txt; \
     pip install --no-cache tox; \
     chgrp signals /app; \
     chmod g+w /app; \

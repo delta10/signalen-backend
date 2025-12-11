@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from signals.apps.api.ml_tool.client import MLToolClient
+from signals.apps.llm_prediction.services.prediction import get_prediction, resolve_prediction
 from signals.apps.signals.models import Category
 import pickle
 
@@ -102,7 +103,30 @@ class MlPredictCategoryView(APIView):
         else:
             return Response(status=status.HTTP_200_OK, data=data)
 
+    def get_prediction_llm(self, request):
+        text = request.data['text']
+
+        prediction = get_prediction(text)
+
+        main_slug, sub_slug = resolve_prediction(prediction)
+
+        data = {
+            'hoofdrubriek': [
+                [settings.BACKEND_URL + f'/signals/v1/public/terms/categories/{main_slug}'],
+                [1.00],
+            ],
+            'subrubriek': [
+                [settings.BACKEND_URL + f'/signals/v1/public/terms/categories/{main_slug}/sub_categories/{sub_slug}'],
+                [1.00]
+            ]
+        }
+
+        return Response(status=status.HTTP_200_OK, data=data)
+
     def post(self, request, *args, **kwargs):
+        if settings.LLM_FOREGROUND_PREDICTION_ENABLED:
+            return self.get_prediction_llm(request)
+
         try:
             classifier = Classifier.objects.get(is_active=True)
             return self.get_prediction_new_ml_proxy(request, classifier)
