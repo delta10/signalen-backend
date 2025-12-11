@@ -8,6 +8,10 @@ class Migration(migrations.Migration):
 
     initial = True
 
+    dependencies = [
+        ('signals', '0201_alter_area_options'),
+    ]
+
     operations = [
         migrations.CreateModel(
             name='LlmPrediction',
