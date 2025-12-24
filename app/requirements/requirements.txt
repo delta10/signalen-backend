@@ -10,7 +10,7 @@ amsterdam-django-oidc==0.2.2
     # via -r requirements/requirements.in
 arpeggio==2.0.3
     # via textx
-asgiref==3.10.0
+asgiref==3.11.0
     # via
     #   django
     #   django-cors-headers
@@ -18,7 +18,7 @@ attrs==25.4.0
     # via
     #   jsonschema
     #   referencing
-azure-core==1.36.0
+azure-core==1.37.0
     # via
     #   azure-identity
     #   azure-monitor-opentelemetry-exporter
@@ -26,19 +26,19 @@ azure-core==1.36.0
     #   msrest
 azure-identity==1.25.1
     # via azure-monitor-opentelemetry-exporter
-azure-monitor-opentelemetry-exporter==1.0.0b44
+azure-monitor-opentelemetry-exporter==1.0.0b46
     # via -r requirements/requirements.in
 azure-storage-blob==12.27.1
     # via -r requirements/requirements.in
-beautifulsoup4==4.14.2
+beautifulsoup4==4.14.3
     # via
     #   -r requirements/requirements.in
     #   o365
-billiard==4.2.2
+billiard==4.2.4
     # via celery
-boto3==1.40.67
+boto3==1.42.13
     # via django-storages
-botocore==1.40.67
+botocore==1.42.13
     # via
     #   boto3
     #   s3transfer
@@ -48,14 +48,14 @@ cairocffi==1.7.1
     #   weasyprint
 cairosvg==2.8.2
     # via weasyprint
-celery==5.5.3
+celery==5.6.0
     # via
     #   -r requirements/requirements.in
     #   django-celery-beat
     #   django-celery-email
     #   django-celery-results
     #   flower
-certifi==2025.10.5
+certifi==2025.11.12
     # via
     #   elasticsearch
     #   msrest
@@ -67,7 +67,7 @@ cffi==2.0.0
     #   weasyprint
 charset-normalizer==3.4.4
     # via requests
-click==8.3.0
+click==8.3.1
     # via
     #   celery
     #   click-didyoumean
@@ -100,7 +100,7 @@ defusedxml==0.7.1
     #   djangorestframework-xml
 diff-match-patch==20241021
     # via django-import-export
-django==4.2.26
+django==4.2.27
     # via
     #   -r requirements/requirements.in
     #   django-appconf
@@ -121,7 +121,7 @@ django==4.2.26
     #   drf-spectacular
     #   drf-spectacular-sidecar
     #   mozilla-django-oidc
-django-appconf==1.1.0
+django-appconf==1.2.0
     # via django-celery-email
 django-celery-beat==2.8.1
     # via -r requirements/requirements.in
@@ -139,7 +139,7 @@ django-filter==25.1
     #   djangorestframework-gis
 django-fsm==3.0.1
     # via -r requirements/requirements.in
-django-import-export==4.3.13
+django-import-export==4.3.14
     # via -r requirements/requirements.in
 django-markdownx==4.0.9
     # via -r requirements/requirements.in
@@ -149,7 +149,7 @@ django-silk==5.4.3
     # via -r requirements/requirements.in
 django-storages[s3]==1.14.6
     # via -r requirements/requirements.in
-django-timezone-field==7.1
+django-timezone-field==7.2.1
     # via django-celery-beat
 djangorestframework==3.15.2
     # via
@@ -173,14 +173,14 @@ drf-extensions==0.8.0
     #   drf-amsterdam
 drf-spectacular[sidecar]==0.29.0
     # via -r requirements/requirements.in
-drf-spectacular-sidecar==2025.10.1
+drf-spectacular-sidecar==2025.12.1
     # via drf-spectacular
-elasticsearch==7.17.12
+elasticsearch==7.9.1
     # via elasticsearch-dsl
 elasticsearch-dsl==7.4.1
     # via -r requirements/requirements.in
-fixedint==0.1.6
-    # via azure-monitor-opentelemetry-exporter
+exceptiongroup==1.3.1
+    # via celery
 flower==2.0.1
     # via -r requirements/requirements.in
 gprof2dot==2025.4.14
@@ -213,7 +213,7 @@ jsonschema-specifications==2025.9.1
     # via jsonschema
 jwcrypto==1.5.6
     # via -r requirements/requirements.in
-kombu==5.5.4
+kombu==5.6.1
     # via celery
 lxml==6.0.2
     # via -r requirements/requirements.in
@@ -230,13 +230,13 @@ msal-extensions==1.3.1
     # via azure-identity
 msrest==0.7.1
     # via azure-monitor-opentelemetry-exporter
-networkx==3.5
+networkx==3.6.1
     # via -r requirements/requirements.in
-o365==2.1.7
+o365==2.1.8
     # via django-o365mail
 oauthlib==3.3.1
     # via requests-oauthlib
-opentelemetry-api==1.38.0
+opentelemetry-api==1.39.0
     # via
     #   azure-monitor-opentelemetry-exporter
     #   opentelemetry-instrumentation
@@ -246,32 +246,32 @@ opentelemetry-api==1.38.0
     #   opentelemetry-instrumentation-wsgi
     #   opentelemetry-sdk
     #   opentelemetry-semantic-conventions
-opentelemetry-instrumentation==0.59b0
+opentelemetry-instrumentation==0.60b0
     # via
     #   opentelemetry-instrumentation-dbapi
     #   opentelemetry-instrumentation-django
     #   opentelemetry-instrumentation-psycopg2
     #   opentelemetry-instrumentation-wsgi
-opentelemetry-instrumentation-dbapi==0.59b0
+opentelemetry-instrumentation-dbapi==0.60b0
     # via opentelemetry-instrumentation-psycopg2
-opentelemetry-instrumentation-django==0.59b0
+opentelemetry-instrumentation-django==0.60b0
     # via -r requirements/requirements.in
-opentelemetry-instrumentation-psycopg2==0.59b0
+opentelemetry-instrumentation-psycopg2==0.60b0
     # via -r requirements/requirements.in
-opentelemetry-instrumentation-wsgi==0.59b0
+opentelemetry-instrumentation-wsgi==0.60b0
     # via opentelemetry-instrumentation-django
-opentelemetry-sdk==1.38.0
+opentelemetry-sdk==1.39.0
     # via
     #   -r requirements/requirements.in
     #   azure-monitor-opentelemetry-exporter
-opentelemetry-semantic-conventions==0.59b0
+opentelemetry-semantic-conventions==0.60b0
     # via
     #   opentelemetry-instrumentation
     #   opentelemetry-instrumentation-dbapi
     #   opentelemetry-instrumentation-django
     #   opentelemetry-instrumentation-wsgi
     #   opentelemetry-sdk
-opentelemetry-util-http==0.59b0
+opentelemetry-util-http==0.60b0
     # via
     #   opentelemetry-instrumentation-django
     #   opentelemetry-instrumentation-wsgi
@@ -300,7 +300,7 @@ pyjwt[crypto]==2.10.1
     # via
     #   msal
     #   pyjwt
-pypdf==6.1.3
+pypdf==6.4.2
     # via -r requirements/requirements.in
 pyphen==0.17.2
     # via weasyprint
@@ -334,33 +334,33 @@ requests==2.32.5
     #   requests-oauthlib
 requests-oauthlib==2.0.0
     # via msrest
-rpds-py==0.28.0
+rpds-py==0.30.0
     # via
     #   jsonschema
     #   referencing
-s3transfer==0.14.0
+s3transfer==0.16.0
     # via boto3
 six==1.17.0
     # via
     #   elasticsearch-dsl
     #   html5lib
     #   python-dateutil
-soupsieve==2.8
+soupsieve==2.8.1
     # via beautifulsoup4
-sqlparse==0.5.3
+sqlparse==0.5.5
     # via
     #   django
     #   django-silk
 tablib==3.9.0
     # via django-import-export
-textx==4.2.3
+textx==4.3.0
     # via -r requirements/requirements.in
-tinycss2==1.4.0
+tinycss2==1.5.1
     # via
     #   cairosvg
     #   cssselect2
     #   weasyprint
-tornado==6.5.2
+tornado==6.5.4
     # via flower
 typing-extensions==4.15.0
     # via
@@ -373,17 +373,20 @@ typing-extensions==4.15.0
     #   opentelemetry-api
     #   opentelemetry-sdk
     #   opentelemetry-semantic-conventions
-tzdata==2025.2
+tzdata==2025.3
     # via
     #   django-celery-beat
     #   kombu
     #   o365
 tzlocal==5.3.1
-    # via o365
+    # via
+    #   celery
+    #   o365
 uritemplate==4.2.0
     # via drf-spectacular
-urllib3==1.26.20
+urllib3==2.6.2
     # via
+    #   -r requirements/requirements.in
     #   botocore
     #   elasticsearch
     #   requests
