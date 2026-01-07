@@ -24,6 +24,7 @@ BASE_DIR: str = os.path.dirname(os.path.abspath(__file__))
 
 TRUE_VALUES: list[bool | str] = [True, 'True', 'true', '1']
 
+
 # Django settings
 SECRET_KEY: str | None = os.getenv('SECRET_KEY')
 
@@ -34,7 +35,8 @@ LOGGING_LEVEL: str = os.getenv('LOGGING_LEVEL', 'INFO')
 # localhost and 127.0.0.1 are allowed because the deployment process checks the health endpoint with a
 # request to localhost:port
 DEFAULT_ALLOWED_HOSTS: str = 'api.data.amsterdam.nl,acc.api.data.amsterdam.nl,localhost,127.0.0.1'
-ALLOWED_HOSTS: list[str] = os.getenv('ALLOWED_HOSTS', DEFAULT_ALLOWED_HOSTS).split(',')
+ALLOWED_HOSTS: list[str] = os.getenv(
+    'ALLOWED_HOSTS', DEFAULT_ALLOWED_HOSTS).split(',')
 
 INTERNAL_IPS: tuple[str, str] = (
     '127.0.0.1',
@@ -45,7 +47,8 @@ CORS_ALLOWED_ORIGINS: list[str] = [
     origin.strip()
     for origin in os.getenv('CORS_ALLOWED_ORIGINS', 'null').split(',')
 ]
-CORS_ALLOW_ALL_ORIGINS: bool = os.getenv('CORS_ALLOW_ALL_ORIGINS', True) in TRUE_VALUES
+CORS_ALLOW_ALL_ORIGINS: bool = os.getenv(
+    'CORS_ALLOW_ALL_ORIGINS', True) in TRUE_VALUES
 CORS_EXPOSE_HEADERS: list[str] = [
     'Link',  # Added for the geography endpoints
     'X-API-Version',  # General API version
@@ -61,7 +64,8 @@ SIGNAL_ID_DISPLAY_PREFIX: str = os.getenv('SIGNAL_ID_DISPLAY_PREFIX', 'SIG-')
 # Accept signals within this geographic bounding box in
 # format: <lon_min>,<lat_min>,<lon_max>,<lat_max> (WS84)
 # default value covers The Netherlands
-BOUNDING_BOX: list[float] = [float(i) for i in os.getenv('BOUNDING_BOX', '3.3,50.7,7.3,53.6').split(',')]
+BOUNDING_BOX: list[float] = [float(i) for i in os.getenv(
+    'BOUNDING_BOX', '3.3,50.7,7.3,53.6').split(',')]
 
 # Django's security settings
 SECURE_BROWSER_XSS_FILTER: bool = True
@@ -133,7 +137,8 @@ SESSION_SUPPORT_ON_TOKEN_AUTHENTICATION: bool = \
 if SESSION_SUPPORT_ON_TOKEN_AUTHENTICATION:
     MIDDLEWARE.append('signals.apps.api.middleware.SessionLoginMiddleware')
     SESSION_EXPIRE_AT_BROWSER_CLOSE: bool = True
-    SESSION_COOKIE_DOMAIN: str | None = os.getenv('SESSION_COOKIE_DOMAIN', None)
+    SESSION_COOKIE_DOMAIN: str | None = os.getenv(
+        'SESSION_COOKIE_DOMAIN', None)
     SESSION_COOKIE_SAMESITE: str = 'None'
     CORS_ALLOW_CREDENTIALS: bool = True
 
@@ -148,13 +153,15 @@ if SILK_ENABLED:
     MIDDLEWARE.append('silk.middleware.SilkyMiddleware')
     SILKY_META: bool = True
 
-    SILK_PROFILING_ENABLED: bool = os.getenv('SILK_PROFILING_ENABLED') in TRUE_VALUES
+    SILK_PROFILING_ENABLED: bool = os.getenv(
+        'SILK_PROFILING_ENABLED') in TRUE_VALUES
     if SILK_PROFILING_ENABLED:
         SILKY_PYTHON_PROFILER: bool = True
         SILKY_PYTHON_PROFILER_BINARY: bool = True
 
     # If SILK_AUTHENTICATION_ENABLED is enabled you need to log in to Django admin first as a superuser
-    SILK_AUTHENTICATION_ENABLED: bool = os.getenv('SILK_AUTHENTICATION_ENABLED') in TRUE_VALUES
+    SILK_AUTHENTICATION_ENABLED: bool = os.getenv(
+        'SILK_AUTHENTICATION_ENABLED') in TRUE_VALUES
     if SILK_AUTHENTICATION_ENABLED:
         SILKY_AUTHENTICATION: bool = True
         SILKY_AUTHORISATION: bool = True
@@ -162,7 +169,8 @@ if SILK_ENABLED:
 
 OIDC_RP_CLIENT_ID: str | None = os.getenv('OIDC_RP_CLIENT_ID')
 OIDC_RP_CLIENT_SECRET: str | None = os.getenv('OIDC_RP_CLIENT_SECRET')
-OIDC_OP_AUTHORIZATION_ENDPOINT: str | None = os.getenv('OIDC_OP_AUTHORIZATION_ENDPOINT')
+OIDC_OP_AUTHORIZATION_ENDPOINT: str | None = os.getenv(
+    'OIDC_OP_AUTHORIZATION_ENDPOINT')
 OIDC_OP_TOKEN_ENDPOINT: str | None = os.getenv('OIDC_OP_TOKEN_ENDPOINT')
 OIDC_OP_USER_ENDPOINT: str | None = os.getenv('OIDC_OP_USER_ENDPOINT')
 OIDC_OP_JWKS_ENDPOINT: str | None = os.getenv('OIDC_OP_JWKS_ENDPOINT')
@@ -170,15 +178,18 @@ if OIDC_OP_JWKS_ENDPOINT is not None:
     OIDC_RP_SIGN_ALGO: str = 'RS256'
 OIDC_CREATE_USER: bool = False
 OIDC_OP_ISSUER: str | None = os.getenv("OIDC_OP_ISSUER")
-OIDC_TRUSTED_AUDIENCES: list[str] = json.loads(os.getenv("OIDC_TRUSTED_AUDIENCES", '[]'))
-OIDC_VERIFY_AUDIENCE: bool = os.getenv('OIDC_VERIFY_AUDIENCE', True) in TRUE_VALUES
+OIDC_TRUSTED_AUDIENCES: list[str] = json.loads(
+    os.getenv("OIDC_TRUSTED_AUDIENCES", '[]'))
+OIDC_VERIFY_AUDIENCE: bool = os.getenv(
+    'OIDC_VERIFY_AUDIENCE', True) in TRUE_VALUES
 OIDC_USE_NONCE: bool = os.getenv('OIDC_USE_NONCE', True) in TRUE_VALUES
 
 AUTHENTICATION_BACKENDS: list[str] = [
     'signals.admin.oidc.backends.AuthenticationBackend',
 ]
 
-ADMIN_ENABLE_LOCAL_LOGIN: bool = os.getenv('ADMIN_ENABLE_LOCAL_LOGIN', False) in TRUE_VALUES
+ADMIN_ENABLE_LOCAL_LOGIN: bool = os.getenv(
+    'ADMIN_ENABLE_LOCAL_LOGIN', False) in TRUE_VALUES
 if ADMIN_ENABLE_LOCAL_LOGIN:
     AUTHENTICATION_BACKENDS.append("django.contrib.auth.backends.ModelBackend")
 
@@ -233,10 +244,13 @@ CACHES: dict[str, dict[str, str | int]] = {
 }
 
 # Django security settings
-SECURE_SSL_REDIRECT: bool = os.getenv('SECURE_SSL_REDIRECT', True) in TRUE_VALUES
-SECURE_REDIRECT_EXEMPT: list[str] = [r'^status/', ]  # Allow health checks on localhost.
+SECURE_SSL_REDIRECT: bool = os.getenv(
+    'SECURE_SSL_REDIRECT', True) in TRUE_VALUES
+# Allow health checks on localhost.
+SECURE_REDIRECT_EXEMPT: list[str] = [r'^status/', ]
 SECURE_PROXY_SSL_HEADER: tuple[str, str] = ('HTTP_X_FORWARDED_PROTO', 'https')
-SESSION_COOKIE_SECURE: bool = os.getenv('SESSION_COOKIE_SECURE', True) in TRUE_VALUES
+SESSION_COOKIE_SECURE: bool = os.getenv(
+    'SESSION_COOKIE_SECURE', True) in TRUE_VALUES
 CSRF_COOKIE_SECURE: bool = os.getenv('CSRF_COOKIE_SECURE', True) in TRUE_VALUES
 
 
@@ -253,7 +267,8 @@ STATIC_ROOT: str = os.path.join(os.path.dirname(BASE_DIR), 'static')
 MEDIA_URL: str = '/signals/media/'
 MEDIA_ROOT: str = os.path.join(os.path.dirname(BASE_DIR), 'media')
 
-S3_STORAGE_ENABLED: bool = os.getenv('S3_STORAGE_ENABLED', False) in TRUE_VALUES
+S3_STORAGE_ENABLED: bool = os.getenv(
+    'S3_STORAGE_ENABLED', False) in TRUE_VALUES
 if S3_STORAGE_ENABLED:
     # S3 Settings
     DEFAULT_FILE_STORAGE: str = 'storages.backends.s3.S3Storage'
@@ -261,20 +276,24 @@ if S3_STORAGE_ENABLED:
     AWS_ACCESS_KEY_ID: str | None = os.getenv('S3_STORAGE_ACCESS_KEY')
     AWS_SECRET_ACCESS_KEY: str | None = os.getenv('S3_STORAGE_SECRET_KEY')
     AWS_STORAGE_BUCKET_NAME: str | None = os.getenv('S3_STORAGE_BUCKET_NAME')
-    AWS_QUERYSTRING_EXPIRE: int | None = int(os.getenv('S3_STORAGE_EXPIRATION_SECS', 5*60))
+    AWS_QUERYSTRING_EXPIRE: int | None = int(
+        os.getenv('S3_STORAGE_EXPIRATION_SECS', 5*60))
     AWS_S3_ENDPOINT_URL: str | None = os.getenv('S3_ENDPOINT_URL')
     AWS_S3_REGION_NAME: str | None = os.getenv('S3_REGION_NAME')
 
-AZURE_STORAGE_ENABLED: bool = os.getenv('AZURE_STORAGE_ENABLED', False) in TRUE_VALUES
+AZURE_STORAGE_ENABLED: bool = os.getenv(
+    'AZURE_STORAGE_ENABLED', False) in TRUE_VALUES
 if AZURE_STORAGE_ENABLED:
     # Azure Settings
     DEFAULT_FILE_STORAGE: str = 'storages.backends.azure_storage.AzureStorage'
 
     AZURE_ACCOUNT_NAME: str | None = os.getenv('AZURE_STORAGE_ACCOUNT_NAME')
     AZURE_ACCOUNT_KEY: str | None = os.getenv('AZURE_STORAGE_ACCOUNT_KEY')
-    AZURE_URL_EXPIRATION_SECS = int(os.getenv('AZURE_STORAGE_URL_EXPIRATION_SECS', 30*60))
+    AZURE_URL_EXPIRATION_SECS = int(
+        os.getenv('AZURE_STORAGE_URL_EXPIRATION_SECS', 30*60))
 
-    AZURE_CONTAINER: str = os.getenv('AZURE_STORAGE_CONTAINER_NAME', '')  # Default container
+    AZURE_CONTAINER: str = os.getenv(
+        'AZURE_STORAGE_CONTAINER_NAME', '')  # Default container
     AZURE_CONTAINERS: dict[str, dict[str, str | bool]] = {
         'main': {
             'azure_container': AZURE_CONTAINER
@@ -285,7 +304,8 @@ if AZURE_STORAGE_ENABLED:
         }
     }
 
-    AZURE_CUSTOM_DOMAIN: str | None = os.getenv('AZURE_STORAGE_CUSTOM_DOMAIN', None)
+    AZURE_CUSTOM_DOMAIN: str | None = os.getenv(
+        'AZURE_STORAGE_CUSTOM_DOMAIN', None)
 
 # Save files using system's standard umask. This is required for network mounts like
 # Azure Files as they do not implement a full-fledged permission system.
@@ -312,15 +332,18 @@ CELERY_BROKER_URL: str = os.getenv('CELERY_BROKER_URL',
 CELERY_RESULT_BACKEND: str = 'django-db'
 CELERY_RESULT_EXTENDED: bool = True
 CELERY_TASK_RESULT_EXPIRES: int = 604800  # 7 days in seconds (7*24*60*60)
-CELERY_TASK_ALWAYS_EAGER: bool = os.getenv('CELERY_TASK_ALWAYS_EAGER', False) in TRUE_VALUES
-CELERY_TASK_DEFAULT_PRIORITY = 5  # Make sure that all task are scheduled with a default priority of '5'
+CELERY_TASK_ALWAYS_EAGER: bool = os.getenv(
+    'CELERY_TASK_ALWAYS_EAGER', False) in TRUE_VALUES
+# Make sure that all task are scheduled with a default priority of '5'
+CELERY_TASK_DEFAULT_PRIORITY = 5
 
 # Celery Beat settings
 CELERY_BEAT_SCHEDULER: str = 'django_celery_beat.schedulers:DatabaseScheduler'
 CELERY_BEAT_SCHEDULE: dict[str, dict[str, Any]] = {}
 
 # E-mail settings for SMTP (SendGrid)
-EMAIL_BACKEND: str = os.getenv('EMAIL_BACKEND', 'djcelery_email.backends.CeleryEmailBackend')
+EMAIL_BACKEND: str = os.getenv(
+    'EMAIL_BACKEND', 'djcelery_email.backends.CeleryEmailBackend')
 EMAIL_HOST: str | None = os.getenv('EMAIL_HOST')
 EMAIL_HOST_USER: str | None = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD: str | None = os.getenv('EMAIL_HOST_PASSWORD')
@@ -330,17 +353,25 @@ EMAIL_USE_TLS: bool = os.getenv('EMAIL_USE_TLS', False) in TRUE_VALUES
 if not EMAIL_USE_TLS:
     EMAIL_USE_SSL: bool = os.getenv('EMAIL_USE_SSL', True) in TRUE_VALUES
 
-CELERY_EMAIL_BACKEND: str = os.getenv('CELERY_EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+CELERY_EMAIL_BACKEND: str = os.getenv(
+    'CELERY_EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_REST_ENDPOINT: str | None = os.getenv('EMAIL_REST_ENDPOINT', None)
-EMAIL_REST_ENDPOINT_TIMEOUT: str | int = os.getenv('EMAIL_REST_ENDPOINT_TIMEOUT', 5)
-EMAIL_REST_ENDPOINT_CLIENT_CERT: str | None = os.getenv('EMAIL_REST_ENDPOINT_CLIENT_CERT', None)
-EMAIL_REST_ENDPOINT_CLIENT_KEY: str | None = os.getenv('EMAIL_REST_ENDPOINT_CLIENT_KEY', None)
-EMAIL_REST_ENDPOINT_CA_BUNDLE: str | None = os.getenv('EMAIL_REST_ENDPOINT_CA_BUNDLE', None)
+EMAIL_REST_ENDPOINT_TIMEOUT: str | int = os.getenv(
+    'EMAIL_REST_ENDPOINT_TIMEOUT', 5)
+EMAIL_REST_ENDPOINT_CLIENT_CERT: str | None = os.getenv(
+    'EMAIL_REST_ENDPOINT_CLIENT_CERT', None)
+EMAIL_REST_ENDPOINT_CLIENT_KEY: str | None = os.getenv(
+    'EMAIL_REST_ENDPOINT_CLIENT_KEY', None)
+EMAIL_REST_ENDPOINT_CA_BUNDLE: str | None = os.getenv(
+    'EMAIL_REST_ENDPOINT_CA_BUNDLE', None)
 
-O365_ACTUALLY_SEND_IN_DEBUG: bool = os.getenv('O365_ACTUALLY_SEND_IN_DEBUG', False) in TRUE_VALUES
-O365_MAIL_SAVE_TO_SENT: bool = os.getenv('O365_MAIL_SAVE_TO_SENT', False) in TRUE_VALUES
+O365_ACTUALLY_SEND_IN_DEBUG: bool = os.getenv(
+    'O365_ACTUALLY_SEND_IN_DEBUG', False) in TRUE_VALUES
+O365_MAIL_SAVE_TO_SENT: bool = os.getenv(
+    'O365_MAIL_SAVE_TO_SENT', False) in TRUE_VALUES
 O365_MAIL_CLIENT_ID: str | None = os.getenv('O365_MAIL_CLIENT_ID', None)
-O365_MAIL_CLIENT_SECRET: str | None = os.getenv('O365_MAIL_CLIENT_SECRET', None)
+O365_MAIL_CLIENT_SECRET: str | None = os.getenv(
+    'O365_MAIL_CLIENT_SECRET', None)
 O365_MAIL_TENANT_ID: str | None = os.getenv('O365_MAIL_TENANT_ID', None)
 O365_MAIL_ACCOUNT_KWARGS: dict[str, str] = {
     'token_backend': 'O365.utils.token.EnvTokenBackend'
@@ -360,15 +391,20 @@ CELERY_EMAIL_CHUNK_SIZE: int = 1
 CELERY_EMAIL_TASK_CONFIG: dict[str, bool | str | int] = {
     'ignore_result': False,
 }
-celery_email_task_config_max_retries = os.getenv('CELERY_EMAIL_TASK_CONFIG_MAX_RETRIES')
+celery_email_task_config_max_retries = os.getenv(
+    'CELERY_EMAIL_TASK_CONFIG_MAX_RETRIES')
 if celery_email_task_config_max_retries is not None:
-    CELERY_EMAIL_TASK_CONFIG['max_retries'] = int(celery_email_task_config_max_retries)
+    CELERY_EMAIL_TASK_CONFIG['max_retries'] = int(
+        celery_email_task_config_max_retries)
 
-celery_email_task_config_default_retry_delay = os.getenv('CELERY_EMAIL_TASK_CONFIG_DEFAULT_RETRY_DELAY')
+celery_email_task_config_default_retry_delay = os.getenv(
+    'CELERY_EMAIL_TASK_CONFIG_DEFAULT_RETRY_DELAY')
 if celery_email_task_config_default_retry_delay is not None:
-    CELERY_EMAIL_TASK_CONFIG['default_retry_delay'] = int(celery_email_task_config_default_retry_delay)
+    CELERY_EMAIL_TASK_CONFIG['default_retry_delay'] = int(
+        celery_email_task_config_default_retry_delay)
 
-AZURE_APPLICATION_INSIGHTS_ENABLED: bool = os.getenv('AZURE_APPLICATION_INSIGHTS_ENABLED', False) in TRUE_VALUES
+AZURE_APPLICATION_INSIGHTS_ENABLED: bool = os.getenv(
+    'AZURE_APPLICATION_INSIGHTS_ENABLED', False) in TRUE_VALUES
 
 # Azure Application insights logging
 if AZURE_APPLICATION_INSIGHTS_ENABLED:
@@ -435,7 +471,8 @@ API_TRANSFORM_SOURCE_BASED_ON_REPORTER_DOMAIN_EXTENSIONS: str = os.getenv(
 API_TRANSFORM_SOURCE_BASED_ON_REPORTER_SOURCE: str = os.getenv(
     'API_TRANSFORM_SOURCE_BASED_ON_REPORTER_SOURCE', 'Interne melding'
 )
-API_TRANSFORM_SOURCE_OF_CHILD_SIGNAL_TO: str = os.getenv('API_TRANSFORM_SOURCE_OF_CHILD_SIGNAL_TO', 'Interne melding')
+API_TRANSFORM_SOURCE_OF_CHILD_SIGNAL_TO: str = os.getenv(
+    'API_TRANSFORM_SOURCE_OF_CHILD_SIGNAL_TO', 'Interne melding')
 
 # Default pdok municipalities
 PDOK_LOCATIESERVER_SUGGEST_ENDPOINT: str = os.getenv('PDOK_LOCATIESERVER_SUGGEST_ENDPOINT',
@@ -450,32 +487,39 @@ DEFAULT_PDOK_MUNICIPALITIES: list[str] = os.getenv('DEFAULT_PDOK_MUNICIPALITIES'
 DEFAULT_MAP_TILE_SERVER: str = os.getenv('DEFAULT_MAP_TILE_SERVER', '')
 
 # Default setting for area type
-DEFAULT_SIGNAL_AREA_TYPE: str = os.getenv('DEFAULT_SIGNAL_AREA_TYPE', 'district')
+DEFAULT_SIGNAL_AREA_TYPE: str = os.getenv(
+    'DEFAULT_SIGNAL_AREA_TYPE', 'district')
 
 # Logo used on first page of generated PDFs, supports SVG, PNG, and JPG in
 # order of preference. Note that this logo is rescaled to 100 pixels in height.
 # Note: this assumes the configured image is available through the staticfiles
 # app.
-API_PDF_LOGO_STATIC_FILE: str = os.getenv('API_PDF_LOGO_STATIC_FILE', 'api/logo-gemeente-amsterdam.svg')
+API_PDF_LOGO_STATIC_FILE: str = os.getenv(
+    'API_PDF_LOGO_STATIC_FILE', 'api/logo-gemeente-amsterdam.svg')
 
 # Large images are resized to max dimension of `API_PDF_RESIZE_IMAGES_TO`
 # along the largest side, aspect ratio is maintained.
 API_PDF_RESIZE_IMAGES_TO: int = 800
 
 # Maximum size for attachments
-API_MAX_UPLOAD_SIZE: int = int(os.getenv('API_MAX_UPLOAD_SIZE', '20971520'))  # 20MB
+API_MAX_UPLOAD_SIZE: int = int(
+    os.getenv('API_MAX_UPLOAD_SIZE', '20971520'))  # 20MB
 
 # Enable public map geo endpoint
-ENABLE_PUBLIC_GEO_SIGNAL_ENDPOINT: bool = os.getenv('ENABLE_PUBLIC_GEO_SIGNAL_ENDPOINT', False) in TRUE_VALUES
+ENABLE_PUBLIC_GEO_SIGNAL_ENDPOINT: bool = os.getenv(
+    'ENABLE_PUBLIC_GEO_SIGNAL_ENDPOINT', False) in TRUE_VALUES
 
 # Allow 'invalid' address as unverified
-ALLOW_INVALID_ADDRESS_AS_UNVERIFIED: bool = os.getenv('ALLOW_INVALID_ADDRESS_AS_UNVERIFIED', False) in TRUE_VALUES
+ALLOW_INVALID_ADDRESS_AS_UNVERIFIED: bool = os.getenv(
+    'ALLOW_INVALID_ADDRESS_AS_UNVERIFIED', False) in TRUE_VALUES
 
 # Max instances we allow per Category/State combination
-STATUS_MESSAGE_TEMPLATE_MAX_INSTANCES: str | int = os.getenv('STATUS_MESSAGE_TEMPLATE_MAX_INSTANCES', 20)
+STATUS_MESSAGE_TEMPLATE_MAX_INSTANCES: str | int = os.getenv(
+    'STATUS_MESSAGE_TEMPLATE_MAX_INSTANCES', 20)
 
 MARKDOWNX_MARKDOWNIFY_FUNCTION: str = 'signals.apps.email_integrations.utils.markdownx_md'  # noqa Renders markdown as HTML using Mistune
-MARKDOWNX_URLS_PATH: str = '/signals/markdownx/markdownify/'  # The url path that Signals has for markdownx
+# The url path that Signals has for markdownx
+MARKDOWNX_URLS_PATH: str = '/signals/markdownx/markdownify/'
 
 # DRF Spectacular settings
 SPECTACULAR_SETTINGS: dict[str, str | float | int | bool | list[str]] = {
@@ -496,7 +540,8 @@ SPECTACULAR_SETTINGS: dict[str, str | float | int | bool | list[str]] = {
     ],
 }
 
-EMAIL_VERIFICATION_TOKEN_HOURS_VALID: float = float(os.getenv('EMAIL_VERIFICATION_TOKEN_HOURS_VALID', 24))
+EMAIL_VERIFICATION_TOKEN_HOURS_VALID: float = float(
+    os.getenv('EMAIL_VERIFICATION_TOKEN_HOURS_VALID', 24))
 
 
 # Signals API settings
@@ -528,10 +573,10 @@ FEATURE_FLAGS: dict[str, bool] = {
     'SYSTEM_MAIL_FEEDBACK_RECEIVED_ENABLED': os.getenv('SYSTEM_MAIL_FEEDBACK_RECEIVED_ENABLED', False) in TRUE_VALUES,  # noqa
 
     # Enable/disable status mail for Handled after negative feedback
-    'REPORTER_MAIL_HANDLED_NEGATIVE_CONTACT_ENABLED': os.getenv('REPORTER_MAIL_HANDLED_NEGATIVE_CONTACT_ENABLED', False) in TRUE_VALUES, # noqa
+    'REPORTER_MAIL_HANDLED_NEGATIVE_CONTACT_ENABLED': os.getenv('REPORTER_MAIL_HANDLED_NEGATIVE_CONTACT_ENABLED', False) in TRUE_VALUES,  # noqa
 
     # Enable/disable only mail when Feedback allows_contact is True
-    'REPORTER_MAIL_CONTACT_FEEDBACK_ALLOWS_CONTACT_ENABLED': os.getenv('REPORTER_MAIL_CONTACT_FEEDBACK_ALLOWS_CONTACT_ENABLED', True) in TRUE_VALUES, # noqa
+    'REPORTER_MAIL_CONTACT_FEEDBACK_ALLOWS_CONTACT_ENABLED': os.getenv('REPORTER_MAIL_CONTACT_FEEDBACK_ALLOWS_CONTACT_ENABLED', True) in TRUE_VALUES,  # noqa
 
     # Enable/disable the deletion of signals in a certain state for a certain amount of time
     'DELETE_SIGNALS_IN_STATE_X_AFTER_PERIOD_Y_ENABLED': os.getenv('DELETE_SIGNALS_IN_STATE_X_AFTER_PERIOD_Y_ENABLED', False) in TRUE_VALUES,  # noqa
@@ -587,14 +632,16 @@ if AZURE_APPLICATION_INSIGHTS_ENABLED and AZURE_APPLICATION_INSIGHTS_CONNECTION_
     span_exporter: AzureMonitorTraceExporter = AzureMonitorTraceExporter(
         connection_string=AZURE_APPLICATION_INSIGHTS_CONNECTION_STRING
     )
-    tracer_provider.add_span_processor(BatchSpanProcessor(span_exporter=span_exporter))
+    tracer_provider.add_span_processor(
+        BatchSpanProcessor(span_exporter=span_exporter))
 
     # Enable exporting of logs
     log_exporter: AzureMonitorLogExporter = AzureMonitorLogExporter(
         connection_string=AZURE_APPLICATION_INSIGHTS_CONNECTION_STRING
     )
     logger_provider: LoggerProvider = LoggerProvider(resource=resource)
-    logger_provider.add_log_record_processor(BatchLogRecordProcessor(log_exporter, schedule_delay_millis=3000))
+    logger_provider.add_log_record_processor(
+        BatchLogRecordProcessor(log_exporter, schedule_delay_millis=3000))
 
     # Custom logging handler to attach to logging config
     class AzureLoggingHandler(LoggingHandler):
@@ -613,8 +660,10 @@ if AZURE_APPLICATION_INSIGHTS_ENABLED and AZURE_APPLICATION_INSIGHTS_CONNECTION_
 
 # Instrument Django and the postgres database
 # This will attach logs from the logger module to traces
-Psycopg2Instrumentor().instrument(tracer_provider=tracer_provider, skip_dep_check=True)
-DjangoInstrumentor().instrument(tracer_provider=tracer_provider, response_hook=response_hook)
+Psycopg2Instrumentor().instrument(
+    tracer_provider=tracer_provider, skip_dep_check=True)
+DjangoInstrumentor().instrument(
+    tracer_provider=tracer_provider, response_hook=response_hook)
 
 LOGGING: dict[str, Any] = {
     'version': 1,
