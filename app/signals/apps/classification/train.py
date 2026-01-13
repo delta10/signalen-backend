@@ -16,17 +16,14 @@ from sklearn.metrics import precision_score, recall_score, accuracy_score, Confu
 import pickle
 from django.conf import settings
 from django.utils.text import slugify
-import matplotlib
 
 from signals.apps.signals import workflow
 from signals.apps.signals.models import Signal
 
-matplotlib.use('agg')
-
 if settings.NLTK_DOWNLOAD_DIR:
     nltk.data.path.append(settings.NLTK_DOWNLOAD_DIR)
 
-import matplotlib.pyplot as plt
+nltk.download('stopwords', download_dir=settings.NLTK_DOWNLOAD_DIR)
 
 from signals.apps.classification.models import TrainingSet, Classifier
 
@@ -38,8 +35,6 @@ class TrainClassifier:
         self.training_sets = self.get_training_sets()
         self.df = None
 
-        nltk.download('stopwords', download_dir=settings.NLTK_DOWNLOAD_DIR)
-
     def get_training_sets(self):
         return TrainingSet.objects.filter(pk__in=self.training_set_ids)
 
@@ -50,11 +45,11 @@ class TrainClassifier:
             _, extension = os.path.splitext(training_set.file.name)
 
             if extension == '.xlsx':
-                df = pd.read_excel(training_set.file)
+                with training_set.file.open('rb') as f:
+                    df = pd.read_excel(f)
+                    dataframes.append(df)
             else:
                 raise Exception(f'Unsupported file type: {extension} in {training_set.file.name}')
-
-            dataframes.append(df)
 
         if dataframes:
             self.df = pd.concat(dataframes, ignore_index=True)
@@ -144,6 +139,10 @@ class TrainClassifier:
         return grid_search
 
     def evaluate_model(self, model, test_texts, test_labels):
+        import matplotlib
+        import matplotlib.pyplot as plt
+        matplotlib.use('agg')
+
         test_predict = model.predict(test_texts)
         precision = precision_score(test_labels, test_predict, average='macro', zero_division=0)
         recall = recall_score(test_labels, test_predict, average='macro')
