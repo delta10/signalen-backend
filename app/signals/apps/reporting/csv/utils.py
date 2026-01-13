@@ -4,16 +4,18 @@ import csv
 import logging
 import os
 import shutil
+import tempfile
 import zipfile
-from glob import glob
 from typing import TextIO
 
+from django.core.files.base import ContentFile
+from django.core.files.storage import FileSystemStorage
 from django.db import connection
 from django.db.models import Case, CharField, QuerySet, Value, When
-from django.utils import timezone
-from storages.backends.azure_storage import AzureStorage
 
 from signals.apps.reporting.utils import _get_storage_backend
+
+DWH_ZIP_FILENAME = 'dwh.zip'
 
 logger = logging.getLogger(__name__)
 
@@ -25,36 +27,29 @@ def zip_csv_files(files_to_zip: list, using: str) -> None:
     :returns:
     """
     storage = _get_storage_backend(using=using)
-    now = timezone.now()
-    src_folder = f'{storage.location}/{now:%Y}/{now:%m}/{now:%d}'
-    dst_file = os.path.join(src_folder, f'{now:%Y%m%d_%H%M%S%Z}')
 
-    with zipfile.ZipFile(f'{dst_file}.zip', 'w') as zipper:
-        for file in files_to_zip:
-            if file:
-                base_file = os.path.basename(file)
-                zipper.write(
-                    filename=os.path.join(src_folder, base_file),
-                    arcname=base_file,
-                    compress_type=zipfile.ZIP_DEFLATED
-                )
+    with tempfile.NamedTemporaryFile(suffix='.zip', delete=True) as temp_zip_file:
+        with zipfile.ZipFile(temp_zip_file.name, 'w', zipfile.ZIP_DEFLATED) as zipper:
+            for file in files_to_zip:
+                if file:
+                    try:
+                        # Read file content from storage
+                        with storage.open(file, 'rb') as csv_file:
+                            file_content = csv_file.read()
+                            base_file = os.path.basename(file)
+                            zipper.writestr(base_file, file_content)
+                    except Exception as e:
+                        logger.error(f"Error adding file {file} to zip: {e}")
+                        continue
 
+        # Upload the zip file to storage
+        with open(temp_zip_file.name, 'rb') as zip_file:
+            # Explicitly delete existing file for local storage before saving.
+            # Object storage (e.g., Azure) handles overwrites natively.
+            if isinstance(storage, FileSystemStorage) and storage.exists(DWH_ZIP_FILENAME):
+                storage.delete(DWH_ZIP_FILENAME)
 
-def rotate_zip_files(using: str, max_csv_amount: int = 30) -> None:
-    """
-    rotate csv zip file in the {now:%Y} folder
-
-    :returns:
-    """
-    storage = _get_storage_backend(using=using)
-    now = timezone.now()
-    src_folder = f'{storage.location}/{now:%Y}'
-    if os.path.exists(src_folder):
-        list_of_files = glob(f'{src_folder}/**/*.zip', recursive=True)
-        if len(list_of_files) > max_csv_amount:
-            list_of_files.sort(key=os.path.getmtime)
-            for file_to_be_deleted in list_of_files[:len(list_of_files) - max_csv_amount]:
-                os.remove(file_to_be_deleted)
+            storage.save(DWH_ZIP_FILENAME, ContentFile(zip_file.read()))
 
 
 def save_csv_files(csv_files: list, using: str, path: str | None = None) -> list[str]:
@@ -72,15 +67,15 @@ def save_csv_files(csv_files: list, using: str, path: str | None = None) -> list
     for csv_file_path in csv_files:
         with open(csv_file_path, 'rb') as opened_csv_file:
             file_name = os.path.basename(opened_csv_file.name)
-            file_path = None
-            if isinstance(storage, AzureStorage):
-                file_path = f'{path}{file_name}' if path else file_name
-                storage.save(name=file_path, content=opened_csv_file)
-            else:
-                # Saves the file in a folder structure like "Y/m/d/file_name" for local storage
-                now = timezone.now()
-                file_path = f'{now:%Y}/{now:%m}/{now:%d}/{now:%H%M%S%Z}_{file_name}'
-                storage.save(name=file_path, content=opened_csv_file)
+            file_path = f'{path}{file_name}' if path else file_name
+
+            # Explicitly delete existing file for local storage before saving.
+            # Object storage (e.g., Azure) handles overwrites natively.
+            if isinstance(storage, FileSystemStorage) and storage.exists(file_path):
+                storage.delete(file_path)
+
+            storage.save(file_path, opened_csv_file)
+
             stored_csv.append(os.path.basename(file_path))
     return stored_csv
 
