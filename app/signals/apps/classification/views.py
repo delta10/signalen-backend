@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (C) 2019 - 2023 Gemeente Amsterdam
+import functools
 import logging
 
 from django.core.exceptions import ValidationError as DjangoCoreValidationError
@@ -16,7 +17,14 @@ from django.conf import settings
 from rest_framework import status
 
 from signals.apps.classification.models import Classifier
-import nltk
+
+
+@functools.lru_cache(maxsize=2)
+def _load_models(classifier_pk):
+    classifier = Classifier.objects.get(pk=classifier_pk)
+    main_model = pickle.load(classifier.main_model)
+    sub_model = pickle.load(classifier.sub_model)
+    return main_model, sub_model
 
 
 @extend_schema(exclude=True)
@@ -29,9 +37,6 @@ class MlPredictCategoryView(APIView):
     def __init__(self, *args, **kwargs):
         # When we cannot translate we return the 'overig-overig' category url
         self.default_category = Category.objects.get(slug='overig', parent__isnull=False, parent__slug='overig')
-
-        nltk.download('stopwords', download_dir=settings.NLTK_DOWNLOAD_DIR)
-
         super().__init__(*args, **kwargs)
 
     @property
@@ -68,8 +73,7 @@ class MlPredictCategoryView(APIView):
 
     def get_prediction_new_ml_proxy(self, request, classifier):
         try:
-            main_model = pickle.load(classifier.main_model)
-            sub_model = pickle.load(classifier.sub_model)
+            main_model, sub_model = _load_models(classifier.pk)
 
             text = request.data['text']
 
