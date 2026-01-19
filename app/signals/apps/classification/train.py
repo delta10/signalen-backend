@@ -2,7 +2,6 @@ from datetime import datetime
 import os
 import re
 import io
-import tempfile
 
 import pandas as pd
 import nltk
@@ -46,11 +45,8 @@ class TrainClassifier:
             _, extension = os.path.splitext(training_set.file.name)
 
             if extension == '.xlsx':
-                with tempfile.NamedTemporaryFile(suffix=extension, delete=True) as temp_file:
-                    with training_set.file.open('rb') as storage_file:
-                        temp_file.write(storage_file.read())
-                    temp_file.flush()
-                    df = pd.read_excel(temp_file.name)
+                with training_set.file.open('rb') as f:
+                    df = pd.read_excel(f)
                     dataframes.append(df)
             else:
                 raise Exception(f'Unsupported file type: {extension} in {training_set.file.name}')
