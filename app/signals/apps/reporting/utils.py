@@ -19,14 +19,15 @@ def _get_storage_backend(using: str) -> Storage:
     """
     if settings.AZURE_STORAGE_ENABLED:
         if not hasattr(settings, 'AZURE_CONTAINERS'):
-            raise ImproperlyConfigured('AZURE_CONTAINERS settings must be set!')
+            raise ImproperlyConfigured(
+                'AZURE_CONTAINERS settings must be set!')
         if using not in settings.AZURE_CONTAINERS.keys():
-            raise ImproperlyConfigured(f'{using} not present in the AZURE_CONTAINERS settings')
+            raise ImproperlyConfigured(
+                f'{using} not present in the AZURE_CONTAINERS settings')
 
         return AzureStorage(**settings.AZURE_CONTAINERS.get(using, {}))
 
     if settings.S3_STORAGE_ENABLED:
-        location = getattr(settings, 'DWH_S3_LOCATION', 'datawarehouse')
         return S3Storage(location=settings.DWH_S3_LOCATION)
 
     return FileSystemStorage(location=settings.DWH_MEDIA_ROOT)
