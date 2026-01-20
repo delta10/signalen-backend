@@ -27,6 +27,6 @@ def _get_storage_backend(using: str) -> Storage:
 
     if settings.S3_STORAGE_ENABLED:
         location = getattr(settings, 'DWH_S3_LOCATION', 'datawarehouse')
-        return S3Storage(location=location)
+        return S3Storage(location=settings.DWH_S3_LOCATION)
 
     return FileSystemStorage(location=settings.DWH_MEDIA_ROOT)
