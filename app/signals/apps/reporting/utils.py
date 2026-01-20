@@ -24,5 +24,9 @@ def _get_storage_backend(using: str) -> Union[AzureStorage, FileSystemStorage]:
             raise ImproperlyConfigured(f'{using} not present in the AZURE_CONTAINERS settings')
 
         return AzureStorage(**settings.AZURE_CONTAINERS.get(using, {}))
-    else:
-        return FileSystemStorage(location=settings.DWH_MEDIA_ROOT)
+
+    if settings.S3_STORAGE_ENABLED:
+        location = getattr(settings, 'DWH_S3_LOCATION', 'datawarehouse')
+        return S3Storage(location=location)
+
+    return FileSystemStorage(location=settings.DWH_MEDIA_ROOT)
