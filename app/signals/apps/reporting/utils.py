@@ -17,7 +17,6 @@ def _get_storage_backend(using: str) -> Storage:
     :param using:
     :returns: AzureStorage, S3Storage, or FileSystemStorage
     """
-
     if settings.AZURE_STORAGE_ENABLED:
         if not hasattr(settings, 'AZURE_CONTAINERS'):
             raise ImproperlyConfigured('AZURE_CONTAINERS settings must be set!')
@@ -27,6 +26,7 @@ def _get_storage_backend(using: str) -> Storage:
         return AzureStorage(**settings.AZURE_CONTAINERS.get(using, {}))
 
     if settings.S3_STORAGE_ENABLED:
-        return S3Storage(location='datawarehouse')
+        location = getattr(settings, 'DWH_S3_LOCATION', 'datawarehouse')
+        return S3Storage(location=location)
 
     return FileSystemStorage(location=settings.DWH_MEDIA_ROOT)
