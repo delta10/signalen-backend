@@ -274,6 +274,7 @@ if S3_STORAGE_ENABLED:
     AWS_LOCATION: str | None = os.getenv('S3_LOCATION', 'media')
     AWS_S3_ENDPOINT_URL: str | None = os.getenv('S3_ENDPOINT_URL')
     AWS_S3_REGION_NAME: str | None = os.getenv('S3_REGION_NAME')
+    AWS_S3_DWH_LOCATION: str = os.getenv('S3_DWH_LOCATION', 'datawarehouse')
 
 PROTECTED_FILE_SYSTEM_STORAGE: bool = os.getenv('PROTECTED_FILE_SYSTEM_STORAGE', False) in TRUE_VALUES
 if PROTECTED_FILE_SYSTEM_STORAGE:
