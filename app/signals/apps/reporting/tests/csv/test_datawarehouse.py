@@ -18,6 +18,7 @@ from freezegun import freeze_time
 
 from signals.apps.feedback.factories import FeedbackFactory
 from signals.apps.reporting.csv import datawarehouse
+from signals.apps.reporting.csv.utils import DWH_ZIP_FILENAME
 from signals.apps.reporting.utils import _get_storage_backend
 from signals.apps.signals.factories import (
     CategoryFactory,
@@ -56,13 +57,13 @@ class TestDatawarehouse(testcases.TestCase):
 
         # Checking if we have files on the correct locations and that they
         # do have some content.
-        signals_csv = path.join(self.file_backend_tmp_dir, '2020/09/10', '120000UTC_signals.csv')
-        locations_csv = path.join(self.file_backend_tmp_dir, '2020/09/10', '120000UTC_locations.csv')
-        reporters_csv = path.join(self.file_backend_tmp_dir, '2020/09/10', '120000UTC_reporters.csv')
-        categories_csv = path.join(self.file_backend_tmp_dir, '2020/09/10', '120000UTC_categories.csv')
-        statuses_csv = path.join(self.file_backend_tmp_dir, '2020/09/10', '120000UTC_statuses.csv')
-        sla_csv = path.join(self.file_backend_tmp_dir, '2020/09/10', '120000UTC_sla.csv')
-        directing_departments_csv = path.join(self.file_backend_tmp_dir, '2020/09/10', '120000UTC_directing_departments.csv')  # noqa
+        signals_csv = path.join(self.file_backend_tmp_dir, 'signals.csv')
+        locations_csv = path.join(self.file_backend_tmp_dir, 'locations.csv')
+        reporters_csv = path.join(self.file_backend_tmp_dir, 'reporters.csv')
+        categories_csv = path.join(self.file_backend_tmp_dir, 'categories.csv')
+        statuses_csv = path.join(self.file_backend_tmp_dir, 'statuses.csv')
+        sla_csv = path.join(self.file_backend_tmp_dir, 'sla.csv')
+        directing_departments_csv = path.join(self.file_backend_tmp_dir, 'directing_departments.csv')  # noqa
 
         self.assertTrue(path.exists(signals_csv))
         self.assertTrue(path.getsize(signals_csv))
@@ -94,15 +95,15 @@ class TestDatawarehouse(testcases.TestCase):
 
         # Checking if we have files on the correct locations and that they
         # do have some content.
-        signals_csv = path.join(self.file_backend_tmp_dir, '2020/09/10', '120000UTC_signals.csv')
-        locations_csv = path.join(self.file_backend_tmp_dir, '2020/09/10', '120000UTC_locations.csv')
-        reporters_csv = path.join(self.file_backend_tmp_dir, '2020/09/10', '120000UTC_reporters.csv')
-        categories_csv = path.join(self.file_backend_tmp_dir, '2020/09/10', '120000UTC_categories.csv')
-        statuses_csv = path.join(self.file_backend_tmp_dir, '2020/09/10', '120000UTC_statuses.csv')
-        sla_csv = path.join(self.file_backend_tmp_dir, '2020/09/10', '120000UTC_sla.csv')
-        directing_departments_csv = path.join(self.file_backend_tmp_dir, '2020/09/10', '120000UTC_directing_departments.csv')  # noqa
-        notes_csv = path.join(self.file_backend_tmp_dir, '2020/09/10', '120000UTC_notes.csv')
-        zip_package = path.join(self.file_backend_tmp_dir, '2020/09/10', '20200910_120000UTC.zip')
+        signals_csv = path.join(self.file_backend_tmp_dir, 'signals.csv')
+        locations_csv = path.join(self.file_backend_tmp_dir, 'locations.csv')
+        reporters_csv = path.join(self.file_backend_tmp_dir, 'reporters.csv')
+        categories_csv = path.join(self.file_backend_tmp_dir, 'categories.csv')
+        statuses_csv = path.join(self.file_backend_tmp_dir, 'statuses.csv')
+        sla_csv = path.join(self.file_backend_tmp_dir, 'sla.csv')
+        directing_departments_csv = path.join(self.file_backend_tmp_dir, 'directing_departments.csv')  # noqa
+        notes_csv = path.join(self.file_backend_tmp_dir, 'notes.csv')
+        zip_package = path.join(self.file_backend_tmp_dir, DWH_ZIP_FILENAME)
 
         self.assertTrue(path.exists(signals_csv))
         self.assertTrue(path.getsize(signals_csv))
@@ -121,7 +122,7 @@ class TestDatawarehouse(testcases.TestCase):
 
     @mock.patch.dict('os.environ', {}, clear=True)
     @mock.patch('signals.apps.reporting.csv.utils._get_storage_backend')
-    def test_save_and_rotate_zip(self, mocked_get_storage_backend):
+    def test_save_zip(self, mocked_get_storage_backend):
         # Mocking the storage backend to local file system with tmp directory.
         # In this test case we don't want to make usage of the remote Object
         # Store.
@@ -130,16 +131,14 @@ class TestDatawarehouse(testcases.TestCase):
         # Creating a few objects in the database.
         for i in range(3):
             SignalFactory.create()
-        # force certain output name
-        with freeze_time('2020-09-10T14:00:00+00:00'):
-            datawarehouse.save_and_zip_csv_files_endpoint(max_csv_amount=1)
-        with freeze_time('2020-09-10T15:00:00+00:00'):
-            datawarehouse.save_and_zip_csv_files_endpoint(max_csv_amount=1)
 
-        src_folder = f'{self.file_backend_tmp_dir}/2020'
-        list_of_files = glob(f'{src_folder}/**/*.zip', recursive=True)
+        # Run export twice to verify an existing export is overwritten
+        datawarehouse.save_and_zip_csv_files_endpoint(max_csv_amount=1)
+        datawarehouse.save_and_zip_csv_files_endpoint(max_csv_amount=1)
+
+        list_of_files = glob(f'{self.file_backend_tmp_dir}/*.zip', recursive=True)
         self.assertEqual(1, len(list_of_files))
-        self.assertTrue(list_of_files[0].endswith('20200910_150000UTC.zip'))
+        self.assertTrue(list_of_files[0].endswith(DWH_ZIP_FILENAME))
 
     @override_settings(
         AZURE_STORAGE_ENABLED=True,
