@@ -275,7 +275,7 @@ if S3_STORAGE_ENABLED:
     AWS_S3_REGION_NAME: str | None = os.getenv('S3_REGION_NAME')
 
     # S3_LOCATION serves as an optional root prefix for all storage paths
-    S3_ROOT_LOCATION: str = os.getenv('S3_LOCATION', '')
+    AWS_S3_ROOT_LOCATION: str = os.getenv('S3_ROOT_LOCATION', '')
     AWS_LOCATION: str = '/'.join(filter(None, [S3_ROOT_LOCATION, 'media']))
     AWS_S3_DWH_LOCATION: str = '/'.join(filter(None, [S3_ROOT_LOCATION, 'datawarehouse']))
 
