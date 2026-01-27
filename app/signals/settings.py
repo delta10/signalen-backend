@@ -17,7 +17,6 @@ from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from posixpath import join as pathjoin
 
 from signals import __version__
 
@@ -277,8 +276,8 @@ if S3_STORAGE_ENABLED:
 
     # S3_LOCATION serves as an optional root prefix for all storage paths
     AWS_S3_ROOT_LOCATION: str = os.getenv('S3_ROOT_LOCATION', '')
-    AWS_LOCATION: str = pathjoin(AWS_S3_ROOT_LOCATION, 'media')
-    AWS_S3_DWH_LOCATION: str = pathjoin(AWS_S3_ROOT_LOCATION, 'datawarehouse')
+    AWS_LOCATION: str = '/'.join(filter(None, [AWS_S3_ROOT_LOCATION, 'media']))
+    AWS_S3_DWH_LOCATION: str = '/'.join(filter(None, [AWS_S3_ROOT_LOCATION, 'datawarehouse']))
 
 PROTECTED_FILE_SYSTEM_STORAGE: bool = os.getenv('PROTECTED_FILE_SYSTEM_STORAGE', False) in TRUE_VALUES
 if PROTECTED_FILE_SYSTEM_STORAGE:
