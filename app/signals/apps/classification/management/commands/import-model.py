@@ -14,7 +14,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             '--file-type',
-            choices=['main-model', 'sub-model'],
+            choices=['main-model', 'sub-model', 'main-slugs', 'sub-slugs'],
             required=True,
             help='Type of model file to import'
         )
@@ -79,6 +79,26 @@ class Command(BaseCommand):
                     )
                     self.stdout.write(
                         self.style.SUCCESS(f'Successfully imported sub model for {name}')
+                    )
+                elif file_type == 'main-slugs':
+                    # Store main slugs in main_confusion_matrix field as a temporary solution
+                    classifier.main_confusion_matrix.save(
+                        django_file.name,
+                        django_file,
+                        save=True
+                    )
+                    self.stdout.write(
+                        self.style.SUCCESS(f'Successfully imported main slugs for {name}')
+                    )
+                elif file_type == 'sub-slugs':
+                    # Store sub slugs in sub_confusion_matrix field as a temporary solution
+                    classifier.sub_confusion_matrix.save(
+                        django_file.name,
+                        django_file,
+                        save=True
+                    )
+                    self.stdout.write(
+                        self.style.SUCCESS(f'Successfully imported sub slugs for {name}')
                     )
 
         # Clean up temporary file
