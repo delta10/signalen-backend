@@ -102,7 +102,7 @@ class MlPredictCategoryView(APIView):
                 ]
             }
         except Exception as e:
-            logging.error(f"Error in prediction: {e}")
+            logging.exception("Error in ML prediction")
             return Response('Predicting sub and main category went wrong', content_type='application/json', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response(status=status.HTTP_200_OK, data=data)

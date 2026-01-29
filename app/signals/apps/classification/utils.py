@@ -1,13 +1,14 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (C) 2020 - 2023 Gemeente Amsterdam
 import io
+import logging
 import pickle
 import sys
 import types
-from typing import Union
+from typing import Any, Union
 
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.core.files.storage import FileSystemStorage, Storage
 from storages.backends.azure_storage import AzureStorage
 from storages.backends.s3 import S3Storage
@@ -207,15 +208,71 @@ class ClassesOnlyModel:
         return proba
 
 
-def load_model(file_obj):
+def _validate_model(model: Any, model_type: str) -> None:
+    """
+    Validate that loaded model has expected interface.
+    
+    Args:
+        model: The loaded model object
+        model_type: Type of model for error messages
+        
+    Raises:
+        ValidationError: If model is missing required methods
+    """
+    required_methods = ['predict', 'predict_proba']
+    for method in required_methods:
+        if not hasattr(model, method):
+            raise ValidationError(f"{model_type} model missing required method: {method}")
+
+
+class SecureModelUnpickler(pickle.Unpickler):
+    """
+    Secure unpickler that only allows safe modules for ML models.
+    
+    This provides some protection against pickle-based code execution,
+    but WARNING: pickle is still fundamentally unsafe with untrusted data.
+    """
+    
+    ALLOWED_MODULES = {
+        'sklearn', 'sklearn.ensemble', 'sklearn.linear_model', 'sklearn.svm',
+        'sklearn.tree', 'sklearn.naive_bayes', 'sklearn.neighbors',
+        'sklearn.neural_network', 'sklearn.feature_extraction',
+        'sklearn.feature_extraction.text', 'sklearn.pipeline',
+        'numpy', 'numpy.core', 'numpy.core.numeric', 'numpy.core.multiarray',
+        'pandas', 'scipy', 'joblib', '__main__',
+        # Add engine module for compatibility
+        'signals.apps.classification.utils',
+    }
+    
+    def find_class(self, module: str, name: str):
+        # Only allow specific safe modules
+        if any(module.startswith(allowed) for allowed in self.ALLOWED_MODULES):
+            return super().find_class(module, name)
+        
+        # Special handling for engine module
+        if module == 'engine':
+            _ensure_engine_module()
+            return super().find_class(module, name)
+            
+        raise pickle.UnpicklingError(f"Unsafe module: {module}.{name}")
+
+
+def load_model(file_obj) -> Any:
     """
     Load a pickled model from a file object, handling missing modules gracefully.
+
+    WARNING: This function loads pickle files which can execute arbitrary code.
+    Only use with trusted model files from your own training pipeline.
 
     Args:
         file_obj: A file-like object containing the pickled model
 
     Returns:
         The unpickled model object
+        
+    Raises:
+        ValidationError: If model doesn't have required interface
+        pickle.UnpicklingError: If unsafe modules are detected
     """
     # Read all content into memory first to avoid issues with Django file fields
     # and S3 storage backends
@@ -223,41 +280,46 @@ def load_model(file_obj):
     content = file_obj.read()
 
     # First, try loading with the engine module stub patched in
-    # This is more reliable than the custom unpickler for sklearn models
     _ensure_engine_module()
 
     try:
-        # Try standard pickle first with the patched module
-        model = pickle.load(io.BytesIO(content))
-    except ModuleNotFoundError:
+        # Try secure unpickler first
+        model = SecureModelUnpickler(io.BytesIO(content)).load()
+    except (ModuleNotFoundError, pickle.UnpicklingError) as e:
+        logging.warning(f"Secure unpickling failed, falling back to custom unpickler: {e}")
         # Fall back to custom unpickler for other missing modules
         model = ModelUnpickler(io.BytesIO(content)).load()
     
     # If we got a numpy array containing class labels instead of a proper model,
     # wrap it in a ClassesOnlyModel
     if hasattr(model, '__class__') and 'numpy.ndarray' in str(type(model)):
-        return ClassesOnlyModel(model.tolist())
+        model = ClassesOnlyModel(model.tolist())
+    
+    # Validate the model has required methods
+    _validate_model(model, "Classification")
     
     return model
 
 
-def load_model_from_bytes(data: bytes):
+def load_model_from_bytes(data: bytes) -> Any:
     """
     Load a pickled model from bytes, handling missing modules gracefully.
+
+    WARNING: This function loads pickle files which can execute arbitrary code.
+    Only use with trusted model files from your own training pipeline.
 
     Args:
         data: Bytes containing the pickled model
 
     Returns:
         The unpickled model object
+        
+    Raises:
+        ValidationError: If model doesn't have required interface
+        pickle.UnpicklingError: If unsafe modules are detected
     """
-    # First, try loading with the engine module stub patched in
-    _ensure_engine_module()
-
-    try:
-        return pickle.load(io.BytesIO(data))
-    except ModuleNotFoundError:
-        return ModelUnpickler(io.BytesIO(data)).load()
+    # Create a BytesIO object and use the main load_model function
+    return load_model(io.BytesIO(data))
 
 
 def _get_storage_backend() -> Storage:
