@@ -12,19 +12,19 @@ from rest_framework.views import APIView
 from signals.apps.api.ml_tool.client import MLToolClient
 from signals.apps.llm_prediction.services.prediction import get_prediction, resolve_prediction
 from signals.apps.signals.models import Category
-import pickle
 
 from django.conf import settings
 from rest_framework import status
 
 from signals.apps.classification.models import Classifier
+from signals.apps.classification.utils import load_model
 
 
 @functools.lru_cache(maxsize=2)
 def _load_models(classifier_pk):
     classifier = Classifier.objects.get(pk=classifier_pk)
-    main_model = pickle.load(classifier.main_model)
-    sub_model = pickle.load(classifier.sub_model)
+    main_model = load_model(classifier.main_model)
+    sub_model = load_model(classifier.sub_model)
     return main_model, sub_model
 
 
@@ -75,7 +75,7 @@ class MlPredictCategoryView(APIView):
     def get_prediction_new_ml_proxy(self, request, classifier):
         try:
             main_model, sub_model = _load_models(classifier.pk)
-
+            
             text = request.data['text']
 
             # Get prediction and probability for the main model
@@ -102,7 +102,7 @@ class MlPredictCategoryView(APIView):
                 ]
             }
         except Exception as e:
-            logging.error(e)
+            logging.error(f"Error in prediction: {e}")
             return Response('Predicting sub and main category went wrong', content_type='application/json', status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response(status=status.HTTP_200_OK, data=data)
