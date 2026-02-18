@@ -19,6 +19,7 @@ from signals.apps.api.serializers.area import (
 )
 from signals.apps.signals.models import Area, AreaType
 from signals.auth.backend import JWTAuthBackend
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 
 
 class PublicAreasViewSet(ListModelMixin, GenericViewSet):
@@ -68,12 +69,12 @@ class PrivateAreasViewSet(PublicAreasViewSet):
     Inherits from PublicAreasViewSet and adds authentication.
     """
 
-    authentication_classes = (JWTAuthBackend, )
+    authentication_classes = (JWTAuthBackend, SignalsTokenAuthentication, )
 
 
 class PrivateAreaCreateViewSet(GenericViewSet, CreateModelMixin):
     """The area create API endpoint allows for creating new areas."""
-    authentication_classes = (JWTAuthBackend,)
+    authentication_classes = (JWTAuthBackend, SignalsTokenAuthentication, )
     permission_classes = (SIAPermissions & ModelWritePermissions,)
     queryset = Area.objects.all()
     serializer_class = AreaCreateSerializer
@@ -81,7 +82,7 @@ class PrivateAreaCreateViewSet(GenericViewSet, CreateModelMixin):
 
 class PrivateAreaTypeViewSet(GenericViewSet, CreateModelMixin, ListModelMixin):
     """The area type API allows for listing existing area types and creating new area types."""
-    authentication_classes = (JWTAuthBackend,)
+    authentication_classes = (JWTAuthBackend, SignalsTokenAuthentication, )
     serializer_class = AreaTypeSerializer
     permission_classes = (SIAPermissions & ModelWritePermissions,)
     queryset = AreaType.objects.all()

@@ -13,6 +13,7 @@ from rest_framework.viewsets import ViewSet
 
 from signals.apps.api.generics.permissions import SIAPermissions, SIAReportPermissions
 from signals.auth.backend import JWTAuthBackend
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 
 
 class PassthroughRenderer(BaseRenderer):
@@ -32,7 +33,7 @@ class PrivateCsvViewSet(ViewSet):
     https://stackoverflow.com/a/51936269
     """
 
-    authentication_classes = (JWTAuthBackend, )
+    authentication_classes = (JWTAuthBackend, SignalsTokenAuthentication, )
     permission_classes = (SIAPermissions & SIAReportPermissions, )
 
     def list(self, detail=True, renderer_classes=(PassthroughRenderer,)):

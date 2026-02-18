@@ -21,8 +21,12 @@ class JWTAuthBackend(OIDCAuthentication):
                 raise AuthenticationFailed("User not found") from e
 
             return user, ""
+            
+        result = super().authenticate(request)
+        if result is None:
+            return None
 
-        user, access_token = super().authenticate(request)
+        user, access_token = result
 
         if user is None:
             raise AuthenticationFailed("Incorrect access token provided")

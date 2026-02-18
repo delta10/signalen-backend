@@ -8,13 +8,14 @@ from signals.apps.api.generics.permissions import ModelWritePermissions, SIAPerm
 from signals.apps.api.serializers import StateStatusMessageTemplateSerializer
 from signals.apps.signals.models import Category, StatusMessageTemplate
 from signals.auth.backend import JWTAuthBackend
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 
 
 class StatusMessageTemplatesViewSet(mixins.RetrieveModelMixin, mixins.CreateModelMixin,
                                     viewsets.GenericViewSet):
     serializer_class = StateStatusMessageTemplateSerializer
 
-    authentication_classes = [JWTAuthBackend]
+    authentication_classes = [JWTAuthBackend, SignalsTokenAuthentication]
     permission_classes = (SIAPermissions & ModelWritePermissions,)
     pagination_class = None
 

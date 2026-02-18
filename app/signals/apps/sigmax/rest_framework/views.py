@@ -17,6 +17,7 @@ from signals.apps.sigmax.stuf_protocol.incoming import (
     handle_unsupported_soap_action
 )
 from signals.auth.backend import JWTAuthBackend
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ class CityControlReceiver(APIView):
     """
     Receive SOAP messages from CityControl and handle them.
     """
-    authentication_classes = [JWTAuthBackend]
+    authentication_classes = [JWTAuthBackend, SignalsTokenAuthentication]
 
     def post(self, request, format=None):
         """

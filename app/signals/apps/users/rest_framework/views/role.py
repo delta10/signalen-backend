@@ -10,6 +10,7 @@ from rest_framework_extensions.mixins import DetailSerializerMixin
 from signals.apps.api.generics.permissions import SIAPermissions
 from signals.apps.users.rest_framework.serializers import RoleSerializer
 from signals.auth.backend import JWTAuthBackend
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 
 
 @extend_schema_view(
@@ -26,7 +27,7 @@ class RoleViewSet(DetailSerializerMixin, ModelViewSet):
         'permissions__content_type',
     ).order_by(Lower('name'))
 
-    authentication_classes = [JWTAuthBackend]
+    authentication_classes = [JWTAuthBackend, SignalsTokenAuthentication]
     permission_classes = (SIAPermissions & DjangoModelPermissions, )
 
     serializer_detail_class = RoleSerializer

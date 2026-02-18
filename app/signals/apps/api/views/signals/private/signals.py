@@ -41,6 +41,7 @@ from signals.apps.signals.models import Signal
 from signals.apps.signals.models.aggregates.json_agg import JSONAgg
 from signals.apps.signals.models.functions.asgeojson import AsGeoJSON
 from signals.auth.backend import JWTAuthBackend
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +91,7 @@ class PrivateSignalViewSet(DetailSerializerMixin, CreateModelMixin, UpdateModelM
     serializer_class = PrivateSignalSerializerList
     serializer_detail_class = PrivateSignalSerializerDetail
 
-    authentication_classes = [JWTAuthBackend]
+    authentication_classes = [JWTAuthBackend, SignalsTokenAuthentication]
     permission_classes = (SignalCreateInitialPermission, )
     object_permission_classes = (SignalViewObjectPermission, )
 

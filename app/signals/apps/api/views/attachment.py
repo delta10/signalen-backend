@@ -24,6 +24,7 @@ from signals.apps.api.serializers.attachment import PrivateSignalAttachmentUpdat
 from signals.apps.services.domain.permissions.signal import SignalPermissionService
 from signals.apps.signals.models import Attachment, Signal
 from signals.auth.backend import JWTAuthBackend
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 
 
 @extend_schema_view(
@@ -62,7 +63,7 @@ class PublicSignalAttachmentsViewSet(CreateModelMixin, GenericViewSet):
 class PrivateSignalAttachmentsViewSet(NestedViewSetMixin, ModelViewSet):
     queryset = Attachment.objects.all()
     serializer_class = PrivateSignalAttachmentSerializer
-    authentication_classes = [JWTAuthBackend]
+    authentication_classes = [JWTAuthBackend, SignalsTokenAuthentication]
     permission_classes = [SIAAttachmentPermissions]
 
     def get_queryset(self, *args, **kwargs):

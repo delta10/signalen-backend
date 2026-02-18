@@ -24,6 +24,7 @@ from signals.apps.history.models import Log
 from signals.apps.history.services import HistoryLogService
 from signals.apps.signals.models import Category
 from signals.auth.backend import JWTAuthBackend
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 
 
 @extend_schema_view(
@@ -73,7 +74,7 @@ class PrivateCategoryViewSet(UpdateModelMixin, DetailSerializerMixin, ReadOnlyMo
         'categorydepartment_set__department',
     ).all()
 
-    authentication_classes = [JWTAuthBackend]
+    authentication_classes = [JWTAuthBackend, SignalsTokenAuthentication]
     permission_classes = (SIAPermissions & ModelWritePermissions,)
 
     def perform_update(self, serializer):
@@ -109,7 +110,7 @@ class PrivateCategoryViewSet(UpdateModelMixin, DetailSerializerMixin, ReadOnlyMo
 class PrivateCategoryIconViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, GenericViewSet):
     lookup_url_kwarg = 'category_id'
     queryset = Category.objects.all()
-    authentication_classes = [JWTAuthBackend]
+    authentication_classes = [JWTAuthBackend, SignalsTokenAuthentication]
     permission_classes = (SIAPermissions & ModelWritePermissions, )
     serializer_class = PrivateCategoryIconSerializer
 

@@ -21,13 +21,14 @@ from signals.apps.api.serializers.expression import (
 from signals.apps.services.domain.dsl import DslService
 from signals.apps.signals.models import Expression, ExpressionContext
 from signals.auth.backend import JWTAuthBackend
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 
 
 class PrivateExpressionViewSet(ModelViewSet):
     """
     private ViewSet to display/process expressions in the database
     """
-    authentication_classes = [JWTAuthBackend]
+    authentication_classes = [JWTAuthBackend, SignalsTokenAuthentication]
     permission_classes = (SIAPermissions & ModelWritePermissions,)
 
     queryset = Expression.objects.all()
