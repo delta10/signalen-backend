@@ -12,8 +12,8 @@ from signals.apps.reporting.filters import (
 )
 from signals.apps.reporting.rest_framework.serializers import ReportSignalsPerCategory
 from signals.apps.signals.models import Signal
-from signals.auth.backend import JWTAuthBackend
 from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
+from signals.auth.backend import JWTAuthBackend
 
 
 class _PrivateReportViewSet(GenericViewSet):

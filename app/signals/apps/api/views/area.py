@@ -18,8 +18,8 @@ from signals.apps.api.serializers.area import (
     AreaTypeSerializer
 )
 from signals.apps.signals.models import Area, AreaType
-from signals.auth.backend import JWTAuthBackend
 from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
+from signals.auth.backend import JWTAuthBackend
 
 
 class PublicAreasViewSet(ListModelMixin, GenericViewSet):

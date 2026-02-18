@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (C) 2026 Delta10 B.V.
-import factory
+from factory import SubFactory, post_generation
 from factory.django import DjangoModelFactory
 
 from signals.apps.tokens.models import APIKey
@@ -13,10 +13,10 @@ class APIKeyFactory(DjangoModelFactory):
         model = APIKey
         skip_postgeneration_save = True
 
-    user = factory.SubFactory('signals.apps.users.factories.UserFactory')
+    user: SubFactory = SubFactory('signals.apps.users.factories.UserFactory')
     expires_at = None
 
-    @factory.post_generation
+    @post_generation
     def set_key_and_hash(obj, create, extracted, **kwargs):
         """Generate and store a unique key hash when creating an APIKey."""
         if create:

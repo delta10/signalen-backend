@@ -15,6 +15,7 @@ from rest_framework_extensions.mixins import DetailSerializerMixin
 from signals.apps.api.generics.pagination import HALPagination
 from signals.apps.api.generics.permissions import SIAPermissions, SIAUserPermissions
 from signals.apps.history.services import HistoryLogService
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 from signals.apps.users.rest_framework.filters import UserFilterSet, UserNameListFilterSet
 from signals.apps.users.rest_framework.serializers import (
     UserDetailHALSerializer,
@@ -25,7 +26,6 @@ from signals.apps.users.rest_framework.serializers.user import (
     UserNameListSerializer
 )
 from signals.auth.backend import JWTAuthBackend
-from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 
 # Get the user model as defined in the settings, defaults to the auth User from Django
 User = get_user_model()

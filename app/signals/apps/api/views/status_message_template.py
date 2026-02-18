@@ -7,8 +7,8 @@ from rest_framework.response import Response
 from signals.apps.api.generics.permissions import ModelWritePermissions, SIAPermissions
 from signals.apps.api.serializers import StateStatusMessageTemplateSerializer
 from signals.apps.signals.models import Category, StatusMessageTemplate
-from signals.auth.backend import JWTAuthBackend
 from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
+from signals.auth.backend import JWTAuthBackend
 
 
 class StatusMessageTemplatesViewSet(mixins.RetrieveModelMixin, mixins.CreateModelMixin,

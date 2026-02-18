@@ -12,8 +12,8 @@ from rest_framework.renderers import BaseRenderer
 from rest_framework.viewsets import ViewSet
 
 from signals.apps.api.generics.permissions import SIAPermissions, SIAReportPermissions
-from signals.auth.backend import JWTAuthBackend
 from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
+from signals.auth.backend import JWTAuthBackend
 
 
 class PassthroughRenderer(BaseRenderer):

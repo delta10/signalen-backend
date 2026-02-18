@@ -8,9 +8,9 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework_extensions.mixins import DetailSerializerMixin
 
 from signals.apps.api.generics.permissions import SIAPermissions
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 from signals.apps.users.rest_framework.serializers import PermissionSerializer
 from signals.auth.backend import JWTAuthBackend
-from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 
 
 @extend_schema_view(

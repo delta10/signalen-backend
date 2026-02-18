@@ -10,8 +10,8 @@ from signals.apps.api.filters import SignalPromotedToParentFilter
 from signals.apps.api.generics.permissions import SIAPermissions
 from signals.apps.api.serializers import SignalIdListSerializer
 from signals.apps.signals.models import Signal
-from signals.auth.backend import JWTAuthBackend
 from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
+from signals.auth.backend import JWTAuthBackend
 
 logger = logging.getLogger(__name__)
 

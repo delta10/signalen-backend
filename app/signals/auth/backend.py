@@ -13,7 +13,7 @@ class JWTAuthBackend(OIDCAuthentication):
     www_authenticate_realm = "signals"
 
     @override
-    def authenticate(self, request: Request) -> tuple[User, str]:
+    def authenticate(self, request: Request) -> tuple[User, str] | None:
         if settings.SIGNALS_AUTH.get("ALWAYS_OK", False):
             try:
                 user = User.objects.get(username__iexact=settings.TEST_LOGIN, is_active=True)
@@ -21,7 +21,7 @@ class JWTAuthBackend(OIDCAuthentication):
                 raise AuthenticationFailed("User not found") from e
 
             return user, ""
-            
+
         result = super().authenticate(request)
         if result is None:
             return None

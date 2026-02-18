@@ -23,8 +23,8 @@ from signals.apps.api.serializers.category import (
 from signals.apps.history.models import Log
 from signals.apps.history.services import HistoryLogService
 from signals.apps.signals.models import Category
-from signals.auth.backend import JWTAuthBackend
 from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
+from signals.auth.backend import JWTAuthBackend
 
 
 @extend_schema_view(

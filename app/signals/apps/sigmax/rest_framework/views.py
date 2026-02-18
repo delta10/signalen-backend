@@ -16,8 +16,8 @@ from signals.apps.sigmax.stuf_protocol.incoming import (
     handle_actualiseerZaakstatus_Lk01,
     handle_unsupported_soap_action
 )
-from signals.auth.backend import JWTAuthBackend
 from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
+from signals.auth.backend import JWTAuthBackend
 
 logger = logging.getLogger(__name__)
 

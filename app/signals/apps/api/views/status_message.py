@@ -15,8 +15,8 @@ from signals.apps.api.serializers.status_message import (
     StatusMessageSerializer
 )
 from signals.apps.signals.models import StatusMessage, StatusMessageCategory
-from signals.auth.backend import JWTAuthBackend
 from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
+from signals.auth.backend import JWTAuthBackend
 
 
 class StatusMessagesViewSet(ModelViewSet):

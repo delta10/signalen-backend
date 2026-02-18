@@ -22,9 +22,8 @@ from signals.apps.api.serializers import (
 )
 from signals.apps.signals import workflow
 from signals.apps.signals.models import Signal
-from signals.auth.backend import JWTAuthBackend
 from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
-
+from signals.auth.backend import JWTAuthBackend
 
 logger = logging.getLogger(__name__)
 

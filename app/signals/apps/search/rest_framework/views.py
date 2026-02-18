@@ -20,9 +20,9 @@ from signals.apps.search.elasticsearch_dsl.search import StatusMessagesSearch
 from signals.apps.search.rest_framework.pagination import ElasticHALPagination
 from signals.apps.search.rest_framework.serializers import StatusMessageListSerializer
 from signals.apps.signals.models import Signal
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 from signals.auth.backend import JWTAuthBackend
 from signals.schema import GenericErrorSerializer
-from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 
 
 class SearchView(DetailSerializerMixin, ReadOnlyModelViewSet):

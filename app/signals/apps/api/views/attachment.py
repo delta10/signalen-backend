@@ -23,8 +23,8 @@ from signals.apps.api.serializers import (
 from signals.apps.api.serializers.attachment import PrivateSignalAttachmentUpdateSerializer
 from signals.apps.services.domain.permissions.signal import SignalPermissionService
 from signals.apps.signals.models import Attachment, Signal
-from signals.auth.backend import JWTAuthBackend
 from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
+from signals.auth.backend import JWTAuthBackend
 
 
 @extend_schema_view(

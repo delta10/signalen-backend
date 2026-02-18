@@ -40,8 +40,8 @@ from signals.apps.services.domain.pdf import PDFSummaryService
 from signals.apps.signals.models import Signal
 from signals.apps.signals.models.aggregates.json_agg import JSONAgg
 from signals.apps.signals.models.functions.asgeojson import AsGeoJSON
-from signals.auth.backend import JWTAuthBackend
 from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
+from signals.auth.backend import JWTAuthBackend
 
 logger = logging.getLogger(__name__)
 

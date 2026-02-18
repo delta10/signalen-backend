@@ -14,8 +14,8 @@ from signals.apps.api.serializers import (
     PrivateDepartmentSerializerList
 )
 from signals.apps.signals.models import Department
-from signals.auth.backend import JWTAuthBackend
 from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
+from signals.auth.backend import JWTAuthBackend
 
 
 @extend_schema_view(

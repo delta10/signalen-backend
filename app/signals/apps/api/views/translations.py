@@ -12,8 +12,8 @@ from rest_framework.status import HTTP_201_CREATED, HTTP_404_NOT_FOUND
 from rest_framework.views import APIView
 
 from signals.apps.api.generics.permissions import CanCreateI18NextTranslationFile
-from signals.auth.backend import JWTAuthBackend
 from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
+from signals.auth.backend import JWTAuthBackend
 
 I18NEXT_TRANSLATION_FILE_PATH = 'i18next/translations.json'
 
