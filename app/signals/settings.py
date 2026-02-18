@@ -493,6 +493,7 @@ SPECTACULAR_SETTINGS: dict[str, str | float | int | bool | list[str]] = {
     'GENERIC_ADDITIONAL_PROPERTIES': True,
     'AUTHENTICATION_WHITELIST': [
         'signals.auth.backend.JWTAuthBackend',
+        'signals.apps.tokens.authentication.SignalsTokenAuthentication',
         'signals.apps.my_signals.rest_framework.authentication.MySignalsTokenAuthentication'
     ],
 }

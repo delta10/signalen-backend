@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
-# Copyright (C) 2025
+# Copyright (C) 2026 Delta10 B.V.
 import hashlib
 
 from django.contrib.auth import get_user_model

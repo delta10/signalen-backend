@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
-# Copyright (C) 2025
+# Copyright (C) 2026 Delta10 B.V.
 from django.contrib import admin
 from django.contrib import messages
 from django.utils.html import format_html
