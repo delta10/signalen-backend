@@ -21,7 +21,7 @@ class APIKeyAdmin(admin.ModelAdmin):
         return format_html('<span style="color: green;">Actief</span>')
 
     def get_readonly_fields(self, request, obj=None):
-        """Make all fields readonly when editing an existing key."""
+        # Make all fields readonly when editing an existing key.
         if obj:
             return ['user', 'expires_at', 'created_at']
         return ['created_at']
