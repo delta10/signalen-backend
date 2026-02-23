@@ -18,6 +18,11 @@ class APIKey(models.Model):
     """
     key_hash = models.CharField(max_length=64, unique=True, db_index=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='api_keys')
+    description = models.TextField(
+        blank=True,
+        null=True,
+        help_text='Optionele beschrijving van deze API key, om het doel ervan vast te leggen.'
+    )
     expires_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -45,6 +50,3 @@ class APIKey(models.Model):
             return False
         return now() >= self.expires_at
 
-    def is_valid(self) -> bool:
-        """Check if the API key is valid (not expired)."""
-        return not self.is_expired()

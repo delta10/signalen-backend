@@ -12,7 +12,7 @@ class APIKeyAdmin(admin.ModelAdmin):
     list_filter = ['created_at', 'expires_at']
     search_fields = ['user__username', 'user__email']
     readonly_fields = ['created_at']
-    fields = ['user', 'expires_at', 'created_at']
+    fields = ['user', 'expires_at', 'created_at', 'description']
 
     def status(self, obj):
         """Display whether the key is active or expired."""

@@ -11,9 +11,9 @@ from signals.apps.tokens.models import APIKey
 class SignalsTokenAuthentication(TokenAuthentication):
     """
     Custom TokenAuthentication that uses APIKey model.
-    Expects header: Authorization: Token <key>
+    Expects header: Authorization: Bearer <key>
     """
-    keyword = 'Token'
+    keyword = 'Bearer'
 
     def authenticate(self, request: Request) -> tuple[User, APIKey] | None:
         auth = get_authorization_header(request).split()

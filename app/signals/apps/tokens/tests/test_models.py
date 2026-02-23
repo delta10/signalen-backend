@@ -83,28 +83,6 @@ class TestAPIKeyModel(TestCase):
 
         self.assertTrue(api_key.is_expired())
 
-    def test_is_valid_returns_true_for_active_key_no_expiration(self):
-        """Test that a key with no expiration is valid."""
-        api_key = APIKey(expires_at=None)
-
-        self.assertTrue(api_key.is_valid())
-
-    @freeze_time("2025-01-15 12:00:00")
-    def test_is_valid_returns_true_for_future_expiration(self):
-        """Test that a key with future expiration is valid."""
-        future_date = now() + timedelta(days=1)
-        api_key = APIKey(expires_at=future_date)
-
-        self.assertTrue(api_key.is_valid())
-
-    @freeze_time("2025-01-15 12:00:00")
-    def test_is_valid_returns_false_for_expired_key(self):
-        """Test that an expired key is not valid."""
-        past_date = now() - timedelta(days=1)
-        api_key = APIKey(expires_at=past_date)
-
-        self.assertFalse(api_key.is_valid())
-
     def test_str_representation(self):
         """Test the string representation of APIKey."""
         from signals.apps.users.factories import UserFactory
