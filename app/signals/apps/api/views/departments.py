@@ -14,6 +14,7 @@ from signals.apps.api.serializers import (
     PrivateDepartmentSerializerList
 )
 from signals.apps.signals.models import Department
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 from signals.auth.backend import JWTAuthBackend
 
 
@@ -33,7 +34,7 @@ class PrivateDepartmentViewSet(CreateModelMixin, DetailSerializerMixin, UpdateMo
     serializer_class = PrivateDepartmentSerializerList
     serializer_detail_class = PrivateDepartmentSerializerDetail
 
-    authentication_classes = [JWTAuthBackend]
+    authentication_classes = [JWTAuthBackend, SignalsTokenAuthentication]
     permission_classes = (SIAPermissions & ModelWritePermissions,)
 
     @extend_schema(responses={HTTP_201_CREATED: PrivateDepartmentSerializerDetail},
