@@ -4,9 +4,14 @@ from typing import override
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from jwcrypto.jwt import JWTMissingKey
+from jwcrypto.jwk import InvalidJWKValue
+from josepy.errors import DeserializationError
 from mozilla_django_oidc.contrib.drf import OIDCAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.request import Request
+
+from .tokens import JWTAccessToken
 
 
 class JWTAuthBackend(OIDCAuthentication):
@@ -22,7 +27,34 @@ class JWTAuthBackend(OIDCAuthentication):
 
             return user, ""
 
-        result = super().authenticate(request)
+        if settings.PUB_JWKS:
+            auth_header = request.META.get("HTTP_AUTHORIZATION", "")
+            auth_header_parts = auth_header.split()
+
+            if len(auth_header_parts) != 2 or auth_header_parts[0].lower() != "bearer":
+                return None
+
+            if auth_header_parts[1].count(".") != 2:
+                return None
+
+            try:
+                _, user_id = JWTAccessToken.token_data(auth_header)
+                try:
+                    user = User.objects.get(username__iexact=user_id, is_active=True)
+                except User.DoesNotExist as e:
+                    raise AuthenticationFailed("User not found") from e
+
+                return user, ""
+            except (JWTMissingKey, InvalidJWKValue):
+                # Omit missing key, as it can also be another key that is used by amsterdam-django-oidc
+                pass
+
+        try:
+            result = super().authenticate(request)
+        except DeserializationError as e:
+            # Treat non-JWT bearer token as invalid JWT token            
+            return None
+
         if result is None:
             return None
 

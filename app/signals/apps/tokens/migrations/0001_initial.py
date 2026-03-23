@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
             name='APIKey',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('key_hash', models.CharField(db_index=True, max_length=64, unique=True)),
+                ('key_hash', models.CharField(db_index=True, max_length=128, unique=True)),
                 ('description', models.TextField(
                     blank=True, 
                     help_text='Optionele beschrijving van deze API key, om het doel ervan vast te leggen.', 

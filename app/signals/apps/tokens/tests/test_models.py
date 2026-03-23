@@ -2,6 +2,7 @@
 # Copyright (C) 2026 Delta10 B.V.
 from datetime import timedelta
 
+from django.contrib.auth.hashers import check_password
 from django.test import TestCase
 from django.utils.timezone import now
 from freezegun import freeze_time
@@ -12,22 +13,27 @@ from signals.apps.tokens.models import APIKey
 class TestAPIKeyModel(TestCase):
     """Tests for the APIKey model."""
 
-    def test_hash_key_generates_sha256_hash(self):
-        """Test that hash_key generates a SHA-256 hash."""
+    def test_hash_key_generates_django_password_hash(self):
+        """Test that hash_key generates a Django password hash."""
         key = 'test-api-key-12345'
         hashed = APIKey.hash_key(key)
 
-        # SHA-256 produces 64 character hex string
-        self.assertEqual(len(hashed), 64)
-        self.assertTrue(all(c in '0123456789abcdef' for c in hashed))
+        # Django password hashes start with algorithm identifier
+        self.assertTrue(hashed.startswith('pbkdf2_sha256$'))
+        # Should be able to verify the password
+        self.assertTrue(check_password(key, hashed))
 
-    def test_hash_key_is_consistent(self):
-        """Test that hashing the same key produces the same hash."""
+    def test_hash_key_is_unique_per_call(self):
+        """Test that hashing the same key produces different hashes (due to salt)."""
         key = 'my-secret-key'
         hash1 = APIKey.hash_key(key)
         hash2 = APIKey.hash_key(key)
 
-        self.assertEqual(hash1, hash2)
+        # Hashes should be different due to salt
+        self.assertNotEqual(hash1, hash2)
+        # But both should verify correctly
+        self.assertTrue(check_password(key, hash1))
+        self.assertTrue(check_password(key, hash2))
 
     def test_hash_key_is_unique_per_key(self):
         """Test that different keys produce different hashes."""
@@ -38,6 +44,11 @@ class TestAPIKeyModel(TestCase):
         hash2 = APIKey.hash_key(key2)
 
         self.assertNotEqual(hash1, hash2)
+        # Each hash should only verify its own key
+        self.assertTrue(check_password(key1, hash1))
+        self.assertTrue(check_password(key2, hash2))
+        self.assertFalse(check_password(key1, hash2))
+        self.assertFalse(check_password(key2, hash1))
 
     def test_generate_key_returns_40_char_token(self):
         """Test that generate_key returns a 40 character token (DRF format)."""

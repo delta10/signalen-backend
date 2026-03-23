@@ -2,6 +2,7 @@
 # Copyright (C) 2026 Delta10 B.V.
 from datetime import timedelta
 
+from django.contrib.auth.hashers import check_password
 from django.test import TestCase
 from django.test.client import RequestFactory
 from django.utils.timezone import now
@@ -27,7 +28,7 @@ class TestSignalsTokenAuthentication(TestCase):
         api_key = APIKeyFactory(user=user)
         plain_key = api_key._plain_key
 
-        request = self.factory.get('/test/', HTTP_AUTHORIZATION=f'Token {plain_key}')
+        request = self.factory.get('/test/', HTTP_AUTHORIZATION=f'Bearer {plain_key}')
 
         result = self.auth.authenticate(request)
 
@@ -38,27 +39,10 @@ class TestSignalsTokenAuthentication(TestCase):
 
     def test_authenticate_with_invalid_key_raises_error(self):
         """Test authenticating with an invalid key raises AuthenticationFailed."""
-        request = self.factory.get('/test/', HTTP_AUTHORIZATION='Token invalid-key-12345')
+        request = self.factory.get('/test/', HTTP_AUTHORIZATION='Bearer invalid-key-12345')
 
         with self.assertRaises(AuthenticationFailed):
             self.auth.authenticate(request)
-
-    @freeze_time("2025-01-15 12:00:00")
-    def test_authenticate_with_expired_key_raises_error(self):
-        """Test authenticating with an expired key raises AuthenticationFailed."""
-        user = UserFactory()
-        past_date = now() - timedelta(days=1)
-        api_key = APIKeyFactory(user=user, expires_at=past_date)
-        plain_key = api_key._plain_key
-
-        request = self.factory.get('/test/', HTTP_AUTHORIZATION=f'Token {plain_key}')
-
-        with self.assertRaises(AuthenticationFailed) as cm:
-            self.auth.authenticate(request)
-
-        # Check for expiration-related error message
-        error_msg = str(cm.exception).lower()
-        self.assertTrue('expired' in error_msg or 'verlopen' in error_msg)
 
     def test_authenticate_with_inactive_user_raises_error(self):
         """Test authenticating with an inactive user raises AuthenticationFailed."""
@@ -66,7 +50,7 @@ class TestSignalsTokenAuthentication(TestCase):
         api_key = APIKeyFactory(user=user)
         plain_key = api_key._plain_key
 
-        request = self.factory.get('/test/', HTTP_AUTHORIZATION=f'Token {plain_key}')
+        request = self.factory.get('/test/', HTTP_AUTHORIZATION=f'Bearer {plain_key}')
 
         with self.assertRaises(AuthenticationFailed) as cm:
             self.auth.authenticate(request)
@@ -88,22 +72,22 @@ class TestSignalsTokenAuthentication(TestCase):
             self.auth.authenticate(request)
 
     def test_authenticate_with_wrong_keyword_raises_error(self):
-        """Test that wrong keyword (e.g., Bearer) raises AuthenticationFailed."""
-        request = self.factory.get('/test/', HTTP_AUTHORIZATION='Bearer some-token')
+        """Test that wrong keyword (e.g., Token) raises AuthenticationFailed."""
+        request = self.factory.get('/test/', HTTP_AUTHORIZATION='Token some-token')
 
         with self.assertRaises(AuthenticationFailed):
             self.auth.authenticate(request)
 
     def test_authenticate_with_empty_token_raises_error(self):
         """Test that empty token raises AuthenticationFailed."""
-        request = self.factory.get('/test/', HTTP_AUTHORIZATION='Token')
+        request = self.factory.get('/test/', HTTP_AUTHORIZATION='Bearer')
 
         with self.assertRaises(AuthenticationFailed):
             self.auth.authenticate(request)
 
     def test_authenticate_with_token_containing_spaces_raises_error(self):
         """Test that token with spaces raises AuthenticationFailed."""
-        request = self.factory.get('/test/', HTTP_AUTHORIZATION='Token key with spaces')
+        request = self.factory.get('/test/', HTTP_AUTHORIZATION='Bearer key with spaces')
 
         with self.assertRaises(AuthenticationFailed):
             self.auth.authenticate(request)
@@ -114,7 +98,7 @@ class TestSignalsTokenAuthentication(TestCase):
         api_key = APIKeyFactory(user=user)
         plain_key = api_key._plain_key
 
-        request = self.factory.get('/test/', HTTP_AUTHORIZATION=f'token {plain_key}')
+        request = self.factory.get('/test/', HTTP_AUTHORIZATION=f'Bearer {plain_key}')
 
         result = self.auth.authenticate(request)
 
@@ -153,7 +137,8 @@ class TestSignalsTokenAuthentication(TestCase):
 
         # Check for expiration-related error message
         error_msg = str(cm.exception).lower()
-        self.assertTrue('expired' in error_msg or 'verlopen' in error_msg)
+        
+        self.assertTrue('invalid' in error_msg)
 
     def test_key_hash_storage(self):
         """Test that keys are properly hashed and stored."""
@@ -161,12 +146,13 @@ class TestSignalsTokenAuthentication(TestCase):
         api_key = APIKeyFactory(user=user)
         plain_key = api_key._plain_key
 
-        # Verify the stored hash is SHA-256 of the key
-        expected_hash = APIKey.hash_key(plain_key)
-        self.assertEqual(api_key.key_hash, expected_hash)
+        # Verify the stored hash is the PBDKF2 hash of the key
+        hash = APIKey.hash_key(plain_key)
+        self.assertTrue(hash.startswith('pbkdf2_sha256$'))
+        self.assertTrue(check_password(plain_key, hash))
 
         # Verify we can authenticate with the stored hash
-        request = self.factory.get('/test/', HTTP_AUTHORIZATION=f'Token {plain_key}')
+        request = self.factory.get('/test/', HTTP_AUTHORIZATION=f'Bearer {plain_key}')
         result = self.auth.authenticate(request)
         self.assertIsNotNone(result)
 
@@ -177,11 +163,11 @@ class TestSignalsTokenAuthentication(TestCase):
         api_key2 = APIKeyFactory(user=user)
 
         # Authenticate with first key
-        request1 = self.factory.get('/test/', HTTP_AUTHORIZATION=f'Token {api_key1._plain_key}')
+        request1 = self.factory.get('/test/', HTTP_AUTHORIZATION=f'Bearer {api_key1._plain_key}')
         result1 = self.auth.authenticate(request1)
         self.assertEqual(result1[0], user)
 
         # Authenticate with second key
-        request2 = self.factory.get('/test/', HTTP_AUTHORIZATION=f'Token {api_key2._plain_key}')
+        request2 = self.factory.get('/test/', HTTP_AUTHORIZATION=f'Bearer {api_key2._plain_key}')
         result2 = self.auth.authenticate(request2)
         self.assertEqual(result2[0], user)

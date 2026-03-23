@@ -17,6 +17,7 @@ from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from posixpath import join as pathjoin
 
 from signals import __version__
 
@@ -84,7 +85,11 @@ SIGNAL_APPS: list[str] = [
     'signals.apps.dataset',
     'signals.apps.questionnaires',
     'signals.apps.my_signals',
-    'signals.apps.tokens'
+    'signals.apps.tokens',
+    'signals.apps.classification',
+    'signals.apps.relations',
+    'signals.apps.automation',
+    'signals.apps.notifications',
 ]
 
 INSTALLED_APPS: list[str] = [
@@ -174,6 +179,10 @@ OIDC_OP_ISSUER: str | None = os.getenv("OIDC_OP_ISSUER")
 OIDC_TRUSTED_AUDIENCES: list[str] = json.loads(os.getenv("OIDC_TRUSTED_AUDIENCES", '[]'))
 OIDC_VERIFY_AUDIENCE: bool = os.getenv('OIDC_VERIFY_AUDIENCE', True) in TRUE_VALUES
 OIDC_USE_NONCE: bool = os.getenv('OIDC_USE_NONCE', True) in TRUE_VALUES
+
+PUB_JWKS: str | None = os.getenv('PUB_JWKS')
+
+NLTK_DOWNLOAD_DIR: str | None = os.getenv('NLTK_DOWNLOAD_DIR')
 
 AUTHENTICATION_BACKENDS: list[str] = [
     'signals.admin.oidc.backends.AuthenticationBackend',
@@ -265,6 +274,16 @@ if S3_STORAGE_ENABLED:
     AWS_QUERYSTRING_EXPIRE: int | None = int(os.getenv('S3_STORAGE_EXPIRATION_SECS', 5*60))
     AWS_S3_ENDPOINT_URL: str | None = os.getenv('S3_ENDPOINT_URL')
     AWS_S3_REGION_NAME: str | None = os.getenv('S3_REGION_NAME')
+    AWS_S3_FILE_OVERWRITE = False
+
+    # S3_LOCATION serves as an optional root prefix for all storage paths
+    AWS_S3_ROOT_LOCATION: str = os.getenv('S3_ROOT_LOCATION', '')
+    AWS_LOCATION: str = pathjoin(AWS_S3_ROOT_LOCATION, 'media')
+    AWS_S3_DWH_LOCATION: str = pathjoin(AWS_S3_ROOT_LOCATION, 'datawarehouse')
+
+PROTECTED_FILE_SYSTEM_STORAGE: bool = os.getenv('PROTECTED_FILE_SYSTEM_STORAGE', False) in TRUE_VALUES
+if PROTECTED_FILE_SYSTEM_STORAGE:
+    DEFAULT_FILE_STORAGE: str = 'signals.apps.media.storages.ProtectedFileSystemStorage'
 
 AZURE_STORAGE_ENABLED: bool = os.getenv('AZURE_STORAGE_ENABLED', False) in TRUE_VALUES
 if AZURE_STORAGE_ENABLED:
@@ -400,6 +419,8 @@ SIGMAX_CA_BUNDLE: str | None = os.getenv('SIGMAX_CA_BUNDLE', None)
 SIGMAX_CLIENT_CERT: str | None = os.getenv('SIGMAX_CLIENT_CERT', None)
 SIGMAX_CLIENT_KEY: str | None = os.getenv('SIGMAX_CLIENT_KEY', None)
 SIGMAX_SEND_FAIL_TIMEOUT_MINUTES: str | int = os.getenv('SIGMAX_SEND_FAIL_TIMEOUT_MINUTES', 60*24)  # noqa Default is 24hrs.
+SIGMAX_END_STATE_IS_AFGEHANDELD: bool = os.getenv('SIGMAX_END_STATE_IS_AFGEHANDELD', False) in TRUE_VALUES
+SIGMAX_END_STATE_IS_AFGEHANDELD_STATUS_TEXT: str = os.getenv('SIGMAX_END_STATE_IS_AFGEHANDELD_STATUS_TEXT', 'We hebben uw melding opgelost. Bedankt voor het doorgeven!')
 
 SIGMAX_TRANSFORM_DESCRIPTION_BASED_ON_SOURCE: str | None = os.getenv(
     'SIGMAX_TRANSFORM_DESCRIPTION_BASED_ON_SOURCE', None
@@ -410,6 +431,7 @@ SIGNAL_MAX_NUMBER_OF_CHILDREN: int = 10
 
 # The URL of the Frontend
 FRONTEND_URL: str | None = os.getenv('FRONTEND_URL', None)
+BACKEND_URL: str | None = os.getenv('BACKEND_URL', 'http://localhost:8000')
 
 ML_TOOL_ENDPOINT: str = os.getenv('SIGNALS_ML_TOOL_ENDPOINT', 'https://api.data.amsterdam.nl/signals_mltool')  # noqa
 
@@ -515,6 +537,12 @@ SIGNALS_API_GEO_PAGINATE_BY: int = int(os.getenv(
 ))
 
 TEST_LOGIN: str = os.getenv('TEST_LOGIN', 'signals.admin@example.com')
+
+# Signalen App backend related environment variables
+MUNICIPALITY_CODE: str = os.getenv('MUNICIPALITY_CODE', None)
+SIGNALEN_APP_BACKEND_URL: str = os.getenv('SIGNALEN_APP_BACKEND_URL', None)
+SIGNALEN_APP_BACKEND_SECRET: str = os.getenv('SIGNALEN_APP_BACKEND_SECRET', None)
+
 
 # Feature Flags
 FEATURE_FLAGS: dict[str, bool] = {
@@ -672,3 +700,6 @@ else:
 IMPORT_EXPORT_SKIP_ADMIN_ACTION_EXPORT_UI = True
 IMPORT_EXPORT_SKIP_ADMIN_EXPORT_UI = True
 IMPORT_EXPORT_FORMATS = [JSON]
+
+# Automation settings
+AUTOMATION_SET_STATE_DELAY = int(os.getenv("AUTOMATION_SET_STATE_DELAY", "0"))

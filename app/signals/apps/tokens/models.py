@@ -1,8 +1,7 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (C) 2026 Delta10 B.V.
-import hashlib
-
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 from django.db import models
 from django.utils.timezone import now
 from rest_framework.authtoken.models import Token
@@ -16,7 +15,7 @@ class APIKey(models.Model):
     The actual key is only shown once during creation (in admin).
     Only the hash is stored in the database.
     """
-    key_hash = models.CharField(max_length=64, unique=True, db_index=True)
+    key_hash = models.CharField(max_length=128, unique=True, db_index=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='api_keys')
     description = models.TextField(
         blank=True,
@@ -36,9 +35,9 @@ class APIKey(models.Model):
 
     @classmethod
     def hash_key(cls, key: str) -> str:
-        """Hash the API key using SHA-256."""
-        return hashlib.sha256(key.encode()).hexdigest()
-
+        """Hash the API key using Django's password hasher."""
+        return make_password(key)
+    
     @classmethod
     def generate_key(cls) -> str:
         """Generate a new API key using DRF's Token generator."""

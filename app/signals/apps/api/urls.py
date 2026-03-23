@@ -47,6 +47,7 @@ from signals.apps.users.rest_framework.views import (
     RoleViewSet,
     UserViewSet
 )
+from signals.apps.relations.rest_framework.views import SignalRelatedViewSet
 
 # Public API
 public_router = SignalsRouter()
@@ -93,8 +94,9 @@ urlpatterns = [
     # Status message search
     re_path(r'v1/private/status-messages/search/?$', StatusMessageSearchView.as_view(), name='status-message-search'),
 
-    # Legacy prediction proxy endpoint, still needed
-    path('category/prediction', LegacyMlPredictCategoryView.as_view(), name='ml-tool-predict-proxy'),
+    # # Legacy prediction proxy endpoint, still needed
+    # path('category/prediction', LegacyMlPredictCategoryView.as_view(), name='ml-tool-predict-proxy'),
+    path('', include('signals.apps.classification.urls')),
 
     # The base routes of the API
     path('v1/', include(base_router.urls)),
@@ -148,6 +150,11 @@ urlpatterns = [
                 name='private-signal-context-reporter'),
         re_path(r'signals/(?P<pk>\d+)/context/near/geography/?$', SignalContextViewSet.as_view({'get': 'near'}),
                 name='private-signal-context-near-geography'),
+
+        # Signal relations
+        re_path(r'signals/(?P<pk>\d+)/related/?$', SignalRelatedViewSet.as_view({'get': 'list', 'post': 'link', 'delete': 'unlink'}),
+                name='private-signal-related'),
+
 
         re_path(r'categories/(?P<category_id>\d+)/icon',
                 PrivateCategoryIconViewSet.as_view({'get': 'retrieve',
