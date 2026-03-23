@@ -8,6 +8,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework_extensions.mixins import DetailSerializerMixin
 
 from signals.apps.api.generics.permissions import SIAPermissions
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 from signals.apps.users.rest_framework.serializers import PermissionSerializer
 from signals.auth.backend import JWTAuthBackend
 
@@ -21,7 +22,7 @@ class PermissionViewSet(DetailSerializerMixin, ReadOnlyModelViewSet):
         'content_type',
     ).filter(Q(codename__istartswith='sia_') | Q(codename='push_to_sigmax'))
 
-    authentication_classes = [JWTAuthBackend]
+    authentication_classes = [JWTAuthBackend, SignalsTokenAuthentication]
     permission_classes = (SIAPermissions & DjangoModelPermissions,)
 
     serializer_detail_class = PermissionSerializer
