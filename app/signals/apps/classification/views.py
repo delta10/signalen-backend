@@ -84,19 +84,34 @@ class MlPredictCategoryView(APIView):
             main_prob = main_proba[main_index]
 
             # Get prediction and probability for the sub model
-            sub_prediction = sub_model.predict([text])[0]
+            mainsub_prediction = sub_model.predict([text])[0]
             sub_proba = sub_model.predict_proba([text])[0]
-            sub_category = sub_prediction.split('|')[1]
-            sub_index = list(sub_model.classes_).index(sub_prediction)
+            sub_prediction = mainsub_prediction.split('|')[1]
+            sub_index = list(sub_model.classes_).index(mainsub_prediction)
             sub_prob = sub_proba[sub_index]
+
+            active_categories = Category.objects.filter(is_active=True)
+
+            try:
+                predicted_main_category = active_categories.get(slug=main_prediction, parent__isnull=True)
+            except Category.DoesNotExist:
+                predicted_main_category = active_categories.get(slug='overig', parent__isnull=True)
+
+            try:
+                predicted_sub_category = active_categories.get(slug=sub_prediction, parent__isnull=False, parent__slug=main_prediction)
+            except Category.DoesNotExist:
+                try:
+                    predicted_sub_category = active_categories.get(slug=f'overig-{main_prediction}', parent__isnull=False, parent__slug=main_prediction)
+                except Category.DoesNotExist:
+                    predicted_sub_category = active_categories.get(slug='overig', parent__isnull=False, parent__slug='overig')
 
             data = {
                 'hoofdrubriek': [
-                    [settings.BACKEND_URL + f'/signals/v1/public/terms/categories/{main_prediction}'],
+                    [predicted_main_category.get_absolute_url(request)],
                     [main_prob],
                 ],
                 'subrubriek': [
-                    [settings.BACKEND_URL + f'/signals/v1/public/terms/categories/{main_prediction}/sub_categories/{sub_category}'],
+                    [predicted_sub_category.get_absolute_url(request)],
                     [sub_prob]
                 ]
             }
