@@ -15,6 +15,7 @@ from signals.apps.api.serializers.status_message import (
     StatusMessageSerializer
 )
 from signals.apps.signals.models import StatusMessage, StatusMessageCategory
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 from signals.auth.backend import JWTAuthBackend
 
 
@@ -32,7 +33,7 @@ class StatusMessagesViewSet(ModelViewSet):
     """
     queryset = StatusMessage.objects.all()
     serializer_class = StatusMessageSerializer
-    authentication_classes = [JWTAuthBackend]
+    authentication_classes = [JWTAuthBackend, SignalsTokenAuthentication]
     permission_classes = (SIAPermissions & ModelWritePermissions, )
     filter_backends = (DjangoFilterBackend, OrderingFilter, )
     filterset_class = StatusMessagesFilterSet
@@ -58,7 +59,7 @@ class StatusMessagesCategoryPositionViewSet(CreateModelMixin, GenericViewSet):
     queryset = StatusMessageCategory.objects.all()
     serializer_class = StatusMessageCategoryPositionSerializer
 
-    authentication_classes = [JWTAuthBackend]
+    authentication_classes = [JWTAuthBackend, SignalsTokenAuthentication]
     permission_classes = (SIAPermissions & ModelWritePermissions,)
     filter_backends = ()
 

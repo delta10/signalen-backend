@@ -5,13 +5,14 @@ from rest_framework import mixins, viewsets
 
 from signals.apps.api.serializers import StoredSignalFilterSerializer
 from signals.apps.signals.models import StoredSignalFilter
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 from signals.auth.backend import JWTAuthBackend
 
 
 class StoredSignalFilterViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin,
                                 mixins.CreateModelMixin, mixins.UpdateModelMixin,
                                 mixins.DestroyModelMixin, viewsets.GenericViewSet):
-    authentication_classes = [JWTAuthBackend]
+    authentication_classes = [JWTAuthBackend, SignalsTokenAuthentication]
 
     pagination_class = HALPagination
     serializer_class = StoredSignalFilterSerializer

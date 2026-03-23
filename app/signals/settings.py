@@ -85,6 +85,7 @@ SIGNAL_APPS: list[str] = [
     'signals.apps.dataset',
     'signals.apps.questionnaires',
     'signals.apps.my_signals',
+    'signals.apps.tokens',
     'signals.apps.classification',
     'signals.apps.relations',
     'signals.apps.automation',
@@ -514,6 +515,7 @@ SPECTACULAR_SETTINGS: dict[str, str | float | int | bool | list[str]] = {
     'GENERIC_ADDITIONAL_PROPERTIES': True,
     'AUTHENTICATION_WHITELIST': [
         'signals.auth.backend.JWTAuthBackend',
+        'signals.apps.tokens.authentication.SignalsTokenAuthentication',
         'signals.apps.my_signals.rest_framework.authentication.MySignalsTokenAuthentication'
     ],
 }
