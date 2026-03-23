@@ -15,6 +15,7 @@ from rest_framework_extensions.mixins import DetailSerializerMixin
 from signals.apps.api.generics.pagination import HALPagination
 from signals.apps.api.generics.permissions import SIAPermissions, SIAUserPermissions
 from signals.apps.history.services import HistoryLogService
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 from signals.apps.users.rest_framework.filters import UserFilterSet, UserNameListFilterSet
 from signals.apps.users.rest_framework.serializers import (
     UserDetailHALSerializer,
@@ -54,7 +55,7 @@ class UserViewSet(DetailSerializerMixin, ModelViewSet):
         'profile__departments',
     ).order_by(Lower('username'))
 
-    authentication_classes = [JWTAuthBackend]
+    authentication_classes = [JWTAuthBackend, SignalsTokenAuthentication]
     permission_classes = (SIAUserPermissions,)
 
     serializer_detail_class = UserDetailHALSerializer
@@ -102,7 +103,7 @@ class LoggedInUserView(RetrieveAPIView):
     """
     queryset = User.objects.none()
 
-    authentication_classes = [JWTAuthBackend]
+    authentication_classes = [JWTAuthBackend, SignalsTokenAuthentication]
     permission_classes = (SIAPermissions,)
 
     serializer_class = UserDetailHALSerializer
@@ -119,7 +120,7 @@ class AutocompleteUsernameListView(ListAPIView):
     """
     queryset = User.objects.all().order_by(Lower('username'))
 
-    authentication_classes = [JWTAuthBackend]
+    authentication_classes = [JWTAuthBackend, SignalsTokenAuthentication]
     permission_classes = (SIAPermissions,)
 
     serializer_class = UserNameListSerializer

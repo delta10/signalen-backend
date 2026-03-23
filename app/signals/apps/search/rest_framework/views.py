@@ -20,12 +20,13 @@ from signals.apps.search.elasticsearch_dsl.search import StatusMessagesSearch
 from signals.apps.search.rest_framework.pagination import ElasticHALPagination
 from signals.apps.search.rest_framework.serializers import StatusMessageListSerializer
 from signals.apps.signals.models import Signal
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 from signals.auth.backend import JWTAuthBackend
 from signals.schema import GenericErrorSerializer
 
 
 class SearchView(DetailSerializerMixin, ReadOnlyModelViewSet):
-    authentication_classes = [JWTAuthBackend]
+    authentication_classes = [JWTAuthBackend, SignalsTokenAuthentication]
     permission_classes = (SIAPermissions,)
 
     serializer_class = PrivateSignalSerializerList
@@ -105,7 +106,7 @@ class SearchView(DetailSerializerMixin, ReadOnlyModelViewSet):
 
 class StatusMessageSearchView(APIView):
     """View providing support for searching for status messages using elasticsearch."""
-    authentication_classes = [JWTAuthBackend]
+    authentication_classes = [JWTAuthBackend, SignalsTokenAuthentication]
     permission_classes = (SIAPermissions,)
     # serializer_class is defined so that drf-spectacular can find out which serializer belongs with this view
     serializer_class = StatusMessageListSerializer

@@ -10,6 +10,7 @@ from signals.apps.api.filters import SignalPromotedToParentFilter
 from signals.apps.api.generics.permissions import SIAPermissions
 from signals.apps.api.serializers import SignalIdListSerializer
 from signals.apps.signals.models import Signal
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 from signals.auth.backend import JWTAuthBackend
 
 logger = logging.getLogger(__name__)
@@ -18,7 +19,7 @@ logger = logging.getLogger(__name__)
 class SignalPromotedToParentViewSet(GenericViewSet, mixins.ListModelMixin):
     serializer_class = SignalIdListSerializer
 
-    authentication_classes = [JWTAuthBackend]
+    authentication_classes = [JWTAuthBackend, SignalsTokenAuthentication]
     permission_classes = (SIAPermissions,)
 
     filter_backends = (DjangoFilterBackend,)

@@ -23,6 +23,7 @@ from signals.apps.api.serializers import (
 from signals.apps.signals import workflow
 from signals.apps.signals.models import Signal
 from signals.auth.backend import JWTAuthBackend
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,7 @@ class SignalContextViewSet(mixins.RetrieveModelMixin, GenericViewSet):
     serializer_class = SignalContextSerializer
     serializer_detail_class = SignalContextSerializer
 
-    authentication_classes = [JWTAuthBackend]
+    authentication_classes = [JWTAuthBackend, SignalsTokenAuthentication]
     permission_classes = (SIAPermissions,)
 
     def get_queryset(self, *args, **kwargs):

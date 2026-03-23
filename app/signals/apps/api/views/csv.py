@@ -9,6 +9,7 @@ from rest_framework.viewsets import ViewSet
 from signals.apps.api.generics.permissions import SIAPermissions, SIAReportPermissions
 from signals.apps.reporting.csv.utils import DWH_ZIP_FILENAME
 from signals.apps.reporting.utils import _get_storage_backend
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 from signals.auth.backend import JWTAuthBackend
 
 
@@ -29,7 +30,7 @@ class PrivateCsvViewSet(ViewSet):
     https://stackoverflow.com/a/51936269
     """
 
-    authentication_classes = (JWTAuthBackend, )
+    authentication_classes = (JWTAuthBackend, SignalsTokenAuthentication, )
     permission_classes = (SIAPermissions & SIAReportPermissions, )
 
     def list(self, detail=True, renderer_classes=(PassthroughRenderer,)):

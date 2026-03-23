@@ -22,6 +22,7 @@ from signals.apps.api.serializers.signal_reporter import (
 from signals.apps.history.models import Log
 from signals.apps.history.services.signal_log import signal_update_requested
 from signals.apps.signals.models import Reporter, Signal
+from signals.apps.tokens.rest_framework.authentication import SignalsTokenAuthentication
 from signals.auth.backend import JWTAuthBackend
 
 
@@ -32,7 +33,7 @@ class PrivateSignalReporterViewSet(CreateModelMixin, ListModelMixin, NestedViewS
 
     serializer_class = SignalReporterSerializer
 
-    authentication_classes = [JWTAuthBackend]
+    authentication_classes = [JWTAuthBackend, SignalsTokenAuthentication]
     permission_classes = (ReporterPermission, )
 
     def get_signal(self) -> Signal:
