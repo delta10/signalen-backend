@@ -76,6 +76,7 @@ SIGNAL_APPS: list[str] = [
     'signals.apps.email_integrations',
     'signals.apps.health',
     'signals.apps.signals',
+    'signals.apps.publiclog',
     'signals.apps.api',
     'signals.apps.users',
     'signals.apps.sigmax',
