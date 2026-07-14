@@ -2,6 +2,7 @@
 # Copyright (C) 2026 Delta10 B.V.
 import ipaddress
 
+from django.conf import settings
 from rest_framework.request import Request
 
 from signals.apps.publiclog.models import Blocklist, ReporterLog
@@ -42,7 +43,10 @@ def _strip_port(value: str) -> str:
     return value
 
 
-def log_reporter_request(signal: Signal, request: Request) -> ReporterLog:
+def log_reporter_request(signal: Signal, request: Request) -> ReporterLog | None:
+    if not settings.PUBLICLOG_REPORTER_REQUEST_LOGGING_ENABLED:
+        return None
+
     return ReporterLog.objects.create(
         signal=signal,
         ip_address=get_reporter_ip_address(request),

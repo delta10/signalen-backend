@@ -4,6 +4,8 @@ import json
 import os
 from unittest.mock import patch
 
+from django.test import override_settings
+
 from signals.apps.api.validation.address.base import AddressValidationUnavailableException
 from signals.apps.publiclog.models import Blocklist, ReporterLog
 from signals.apps.signals.factories import CategoryFactory, SignalFactory
@@ -34,6 +36,7 @@ class TestPublicSignalReporterLogging(SignalsBaseApiTestCase):
 
     @patch('signals.apps.api.validation.address.base.BaseAddressValidation.validate_address',
            side_effect=AddressValidationUnavailableException)
+    @override_settings(PUBLICLOG_REPORTER_REQUEST_LOGGING_ENABLED=True)
     def test_create_logs_reporter_request_metadata(self, validate_address):
         response = self.client.post(
             self.list_endpoint,
@@ -51,6 +54,23 @@ class TestPublicSignalReporterLogging(SignalsBaseApiTestCase):
 
     @patch('signals.apps.api.validation.address.base.BaseAddressValidation.validate_address',
            side_effect=AddressValidationUnavailableException)
+    @override_settings(PUBLICLOG_REPORTER_REQUEST_LOGGING_ENABLED=False)
+    def test_create_does_not_log_reporter_request_metadata_when_setting_disabled(self, validate_address):
+        response = self.client.post(
+            self.list_endpoint,
+            self.create_initial_data,
+            format='json',
+            HTTP_X_FORWARDED_FOR='203.0.113.10, 198.51.100.20',
+            HTTP_USER_AGENT='Signals test browser',
+        )
+
+        self.assertEqual(201, response.status_code)
+        self.assertEqual(1, Signal.objects.count())
+        self.assertEqual(0, ReporterLog.objects.count())
+
+    @patch('signals.apps.api.validation.address.base.BaseAddressValidation.validate_address',
+           side_effect=AddressValidationUnavailableException)
+    @override_settings(PUBLICLOG_REPORTER_REQUEST_LOGGING_ENABLED=True)
     def test_create_logs_remote_addr_when_forwarded_for_missing(self, validate_address):
         response = self.client.post(
             self.list_endpoint,
@@ -107,6 +127,7 @@ class TestPublicSignalReporterLogging(SignalsBaseApiTestCase):
 
     @patch('signals.apps.api.validation.address.base.BaseAddressValidation.validate_address',
            side_effect=AddressValidationUnavailableException)
+    @override_settings(PUBLICLOG_REPORTER_REQUEST_LOGGING_ENABLED=True)
     def test_create_is_not_blocked_for_inactive_blocklist_item(self, validate_address):
         Blocklist.objects.create(ip_network='203.0.113.10', is_active=False)
 
