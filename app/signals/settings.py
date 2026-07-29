@@ -76,6 +76,7 @@ SIGNAL_APPS: list[str] = [
     'signals.apps.email_integrations',
     'signals.apps.health',
     'signals.apps.signals',
+    'signals.apps.publiclog',
     'signals.apps.api',
     'signals.apps.users',
     'signals.apps.sigmax',
@@ -543,6 +544,12 @@ TEST_LOGIN: str = os.getenv('TEST_LOGIN', 'signals.admin@example.com')
 MUNICIPALITY_CODE: str = os.getenv('MUNICIPALITY_CODE', None)
 SIGNALEN_APP_BACKEND_URL: str = os.getenv('SIGNALEN_APP_BACKEND_URL', None)
 SIGNALEN_APP_BACKEND_SECRET: str = os.getenv('SIGNALEN_APP_BACKEND_SECRET', None)
+
+# Enable/Disable logging reporter request metadata on public signal creation
+PUBLICLOG_REPORTER_REQUEST_LOGGING_ENABLED: bool = os.getenv(
+    'PUBLICLOG_REPORTER_REQUEST_LOGGING_ENABLED',
+    False,
+) in TRUE_VALUES
 
 
 # Feature Flags

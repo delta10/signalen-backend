@@ -18,6 +18,7 @@ from rest_framework.viewsets import GenericViewSet
 from signals.apps.api.filters.signal import PublicSignalGeographyFilter
 from signals.apps.api.generics.pagination import LinkHeaderPaginationForQuerysets
 from signals.apps.api.serializers import PublicSignalCreateSerializer, PublicSignalSerializerDetail
+from signals.apps.publiclog.reporter_logging import is_reporter_ip_address_blocked, log_reporter_request
 from signals.apps.signals.models import Signal
 from signals.apps.signals.models.aggregates.json_agg import JSONAgg
 from signals.apps.signals.models.views.signal import PublicSignalGeographyFeature
@@ -72,9 +73,13 @@ class PublicSignalViewSet(CreateModelMixin, RetrieveModelMixin, GenericViewSet):
             Exception: If the serializer validation fails.
 
         """
+        if is_reporter_ip_address_blocked(request):
+            return Response({'detail': 'Forbidden.'}, status=status.HTTP_403_FORBIDDEN)
+
         serializer = PublicSignalCreateSerializer(data=request.data, context=self.get_serializer_context())
         serializer.is_valid(raise_exception=True)
         signal = serializer.save()
+        log_reporter_request(signal, request)
 
         data = PublicSignalSerializerDetail(signal, context=self.get_serializer_context()).data
         return Response(data, status=status.HTTP_201_CREATED)
