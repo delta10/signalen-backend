@@ -26,6 +26,6 @@ def _get_storage_backend(using: str) -> Storage:
         return AzureStorage(**settings.AZURE_CONTAINERS.get(using, {}))
 
     if settings.S3_STORAGE_ENABLED:
-        return S3Storage(location=settings.AWS_S3_DWH_LOCATION)
+        return S3Storage(location=settings.AWS_S3_DWH_LOCATION, file_overwrite=True)
 
     return FileSystemStorage(location=settings.DWH_MEDIA_ROOT)

@@ -160,6 +160,24 @@ class TestDatawarehouse(testcases.TestCase):
             azure_container='dwh_container_name',
         )
 
+    @override_settings(
+        AZURE_STORAGE_ENABLED=False,
+        S3_STORAGE_ENABLED=True,
+        AWS_S3_DWH_LOCATION='datawarehouse',
+    )
+    @mock.patch('signals.apps.reporting.utils.S3Storage', autospec=True)
+    def test_get_s3_storage_backend_overwrites_dwh_files(self, mocked_s3_storage):
+        mocked_s3_storage_instance = mock.Mock()
+        mocked_s3_storage.return_value = mocked_s3_storage_instance
+
+        result = _get_storage_backend(using='datawarehouse')
+
+        self.assertEqual(result, mocked_s3_storage_instance)
+        mocked_s3_storage.assert_called_once_with(
+            location='datawarehouse',
+            file_overwrite=True,
+        )
+
     def test_create_signals_csv(self):
         signal = SignalFactory.create()
 
